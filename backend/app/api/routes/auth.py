@@ -138,7 +138,7 @@ async def login(
         return TokenResponse(
             access_token=access_token,
             token_type="bearer",
-            expires_in=15 * 60,  # 15 minutes in seconds
+            expires_in=60 * 60,  # 1 hour in seconds
             user=UserProfile(
                 id=user.id,
                 email=user.email,
@@ -225,7 +225,7 @@ async def refresh_token(
         return TokenResponse(
             access_token=new_access_token,
             token_type="bearer",
-            expires_in=15 * 60,
+            expires_in=60 * 60,  # 1 hour in seconds
             user=UserProfile(
                 id=user.id,
                 email=user.email,
@@ -235,6 +235,7 @@ async def refresh_token(
                 is_email_verified=user.is_email_verified,
                 mfa_enabled=user.mfa_enabled,
                 status=user.status,
+                last_login_at=user.last_login_at,
                 created_at=user.created_at
             )
         )

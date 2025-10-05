@@ -465,7 +465,7 @@ class AuthService:
                 error_code="INVALID_REFRESH_TOKEN"
             )
         
-        user_id = payload.get("sub")
+        user_id = int(payload.get("sub"))  # Convert to integer
         jti = payload.get("jti")
         token_hash = hash_token(refresh_token)
         

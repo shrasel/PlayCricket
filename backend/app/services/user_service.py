@@ -30,7 +30,7 @@ class UserService:
         """Get user by ID with roles"""
         result = await self.db.execute(
             select(User)
-            .options(selectinload(User.user_roles).selectinload(UserRole.role))
+            .options(selectinload(User.roles).selectinload(UserRole.role))
             .where(User.id == user_id)
         )
         return result.scalar_one_or_none()
@@ -39,7 +39,7 @@ class UserService:
         """Get user by email with roles"""
         result = await self.db.execute(
             select(User)
-            .options(selectinload(User.user_roles).selectinload(UserRole.role))
+            .options(selectinload(User.roles).selectinload(UserRole.role))
             .where(User.email == email.lower())
         )
         return result.scalar_one_or_none()
@@ -161,7 +161,7 @@ class UserService:
         """
         # Build query
         query = select(User).options(
-            selectinload(User.user_roles).selectinload(UserRole.role)
+            selectinload(User.roles).selectinload(UserRole.role)
         )
         
         # Apply filters
@@ -181,7 +181,7 @@ class UserService:
         
         if role:
             # Join with user_roles and roles to filter by role code
-            query = query.join(User.user_roles).join(UserRole.role)
+            query = query.join(User.roles).join(UserRole.role)
             filters.append(Role.code == role)
         
         if filters:
@@ -191,7 +191,7 @@ class UserService:
         count_query = select(func.count()).select_from(User)
         if filters:
             if role:
-                count_query = count_query.join(User.user_roles).join(UserRole.role)
+                count_query = count_query.join(User.roles).join(UserRole.role)
             count_query = count_query.where(and_(*filters))
         
         result = await self.db.execute(count_query)
@@ -208,7 +208,7 @@ class UserService:
                 id=user.id,
                 email=user.email,
                 name=user.name,
-                roles=[ur.role.code for ur in user.user_roles],
+                roles=[ur.role.code for ur in user.roles],
                 status=user.status,
                 is_email_verified=user.is_email_verified,
                 mfa_enabled=user.mfa_enabled,

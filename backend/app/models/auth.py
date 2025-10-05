@@ -2,7 +2,7 @@
 Authentication Models
 Handles users, roles, tokens, and audit logging
 """
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 from sqlalchemy import Boolean, Column, Integer, String, DateTime, ForeignKey, Text, Enum as SQLEnum, JSON
 from sqlalchemy.orm import relationship
@@ -128,7 +128,7 @@ class RefreshToken(Base):
     @property
     def is_valid(self) -> bool:
         """Check if token is still valid"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return (
             self.revoked_at is None and
             self.expires_at > now
@@ -168,7 +168,7 @@ class EmailVerificationToken(Base):
     @property
     def is_valid(self) -> bool:
         """Check if token is still valid"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return (
             self.used_at is None and
             self.expires_at > now
@@ -189,7 +189,7 @@ class PasswordResetToken(Base):
     @property
     def is_valid(self) -> bool:
         """Check if token is still valid"""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         return (
             self.used_at is None and
             self.expires_at > now

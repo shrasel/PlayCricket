@@ -12,7 +12,7 @@ import secrets
 class TokenConfig:
     """JWT Token Configuration"""
     # Access token settings
-    ACCESS_TOKEN_EXPIRE_MINUTES = 15  # Short-lived access tokens
+    ACCESS_TOKEN_EXPIRE_MINUTES = 60  # 1 hour access tokens
     ACCESS_TOKEN_ALGORITHM = "HS256"
     
     # Refresh token settings
