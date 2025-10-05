@@ -148,6 +148,7 @@ async def login(
                 is_email_verified=user.is_email_verified,
                 mfa_enabled=user.mfa_enabled,
                 status=user.status,
+                last_login_at=user.last_login_at,
                 created_at=user.created_at
             )
         )
