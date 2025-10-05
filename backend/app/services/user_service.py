@@ -130,11 +130,12 @@ class UserService:
         """Check password strength without saving"""
         result = validate_password_strength(password)
         return PasswordStrengthResponse(
+            valid=result["valid"],
             score=result["score"],
             strength=result["strength"],
-            feedback=result.get("feedback"),
+            errors=result.get("errors", []),
             warnings=result.get("warnings", []),
-            suggestions=result.get("suggestions", [])
+            feedback=result.get("feedback", "")
         )
     
     async def list_users(

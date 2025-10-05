@@ -40,7 +40,7 @@ class User(Base):
     backup_codes = Column(JSONB, nullable=True)
     
     # Account status
-    status = Column(SQLEnum(UserStatus), nullable=False, default=UserStatus.PENDING)
+    status = Column(SQLEnum(UserStatus, name="user_status"), nullable=False, default=UserStatus.PENDING)
     failed_login_attempts = Column(Integer, nullable=False, default=0)
     locked_until = Column(DateTime(timezone=True), nullable=True)
     
@@ -53,7 +53,7 @@ class User(Base):
     updated_at = Column(DateTime(timezone=True), nullable=False, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    roles = relationship("UserRole", back_populates="user", cascade="all, delete-orphan")
+    roles = relationship("UserRole", back_populates="user", foreign_keys="UserRole.user_id", cascade="all, delete-orphan")
     refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan")
     audit_logs = relationship("AuditLog", back_populates="user")
     
