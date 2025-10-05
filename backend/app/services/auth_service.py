@@ -170,7 +170,14 @@ class AuthService:
         self.db.add(audit)
         
         await self.db.commit()
-        await self.db.refresh(user)
+        
+        # Reload user with relationships
+        result = await self.db.execute(
+            select(User)
+            .options(selectinload(User.roles).selectinload(UserRole.role))
+            .where(User.id == user.id)
+        )
+        user = result.scalar_one()
         
         return user, verification_token
     
@@ -255,7 +262,7 @@ class AuthService:
         # Get user
         result = await self.db.execute(
             select(User)
-            .options(selectinload(User.user_roles).selectinload(UserRole.role))
+            .options(selectinload(User.roles).selectinload(UserRole.role))
             .where(User.email == login.email.lower())
         )
         user = result.scalar_one_or_none()
@@ -386,7 +393,7 @@ class AuthService:
         user.last_login_ip = ip_address
         
         # Get user roles
-        roles = [ur.role.code for ur in user.user_roles]
+        roles = [ur.role.code for ur in user.roles]
         
         # Create token pair
         access_token, refresh_token, refresh_jti, refresh_exp = create_token_pair(
@@ -513,7 +520,7 @@ class AuthService:
         # Get user
         result = await self.db.execute(
             select(User)
-            .options(selectinload(User.user_roles).selectinload(UserRole.role))
+            .options(selectinload(User.roles).selectinload(UserRole.role))
             .where(User.id == user_id)
         )
         user = result.scalar_one_or_none()
@@ -533,7 +540,7 @@ class AuthService:
             )
         
         # Get user roles
-        roles = [ur.role.code for ur in user.user_roles]
+        roles = [ur.role.code for ur in user.roles]
         
         # Create new token pair
         new_access_token, new_refresh_token, new_jti, new_exp = create_token_pair(

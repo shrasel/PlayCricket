@@ -87,6 +87,7 @@ async def register(
             is_email_verified=user.is_email_verified,
             mfa_enabled=user.mfa_enabled,
             status=user.status,
+            last_login_at=user.last_login_at,
             created_at=user.created_at
         )
     
@@ -440,6 +441,7 @@ async def get_current_user_profile(
         is_email_verified=current_user.is_email_verified,
         mfa_enabled=current_user.mfa_enabled,
         status=current_user.status,
+        last_login_at=current_user.last_login_at,
         created_at=current_user.created_at
     )
 
@@ -477,6 +479,7 @@ async def update_current_user_profile(
             is_email_verified=user.is_email_verified,
             mfa_enabled=user.mfa_enabled,
             status=user.status,
+            last_login_at=user.last_login_at,
             created_at=user.created_at
         )
     
