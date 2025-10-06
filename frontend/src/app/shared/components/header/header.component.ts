@@ -193,7 +193,7 @@ import { Subject, takeUntil } from 'rxjs';
                 <p class="text-sm font-medium text-gray-900 dark:text-white">{{ currentUser.name }}</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ currentUser.email }}</p>
               </div>
-                          @if (isAuthenticated && currentUser) {
+              
               <a routerLink="/dashboard" (click)="closeMobileMenu()" 
                  class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Dashboard</a>
               <a routerLink="/tournaments" (click)="closeMobileMenu()" 

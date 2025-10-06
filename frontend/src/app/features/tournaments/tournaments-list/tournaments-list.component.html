@@ -231,13 +231,9 @@
                 @for (page of getPageNumbers(); track page) {
                   <button 
                     (click)="goToPage(page)"
-                    [class.bg-indigo-50]="page === currentPage"
-                    [class.dark:bg-indigo-900/30]="page === currentPage"
-                    [class.border-indigo-500]="page === currentPage"
-                    [class.dark:border-indigo-400]="page === currentPage"
-                    [class.text-indigo-600]="page === currentPage"
-                    [class.dark:text-indigo-400]="page === currentPage"
-                    [class.z-10]="page === currentPage"
+                    [ngClass]="{
+                      'bg-indigo-50 dark:bg-indigo-900/30 border-indigo-500 dark:border-indigo-400 text-indigo-600 dark:text-indigo-400 z-10': page === currentPage
+                    }"
                     class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
                     {{ page }}
                   </button>
