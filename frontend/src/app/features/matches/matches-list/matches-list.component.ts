@@ -141,4 +141,8 @@ export class MatchesListComponent implements OnInit {
     }
     return `${match.teams[0].short_name} vs ${match.teams[1].short_name}`;
   }
+
+  get Math() {
+    return Math;
+  }
 }
