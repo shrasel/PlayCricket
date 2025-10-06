@@ -1,177 +1,159 @@
-<div class="container mx-auto px-4 py-8 max-w-2xl">
-  <!-- Header -->
-  <div class="mb-6">
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
-      {{ isEditMode ? 'Edit Venue' : 'Create Venue' }}
-    </h1>
-    <p class="text-gray-600 dark:text-gray-400 mt-2">
-      {{ isEditMode ? 'Update venue information' : 'Add a new cricket ground or stadium' }}
-    </p>
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8">
+  <div class="container mx-auto px-4 max-w-4xl">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-800 dark:text-white mb-2">
+        {{ isEditMode ? 'Edit Venue' : 'Create New Venue' }}
+      </h1>
+      <p class="text-gray-600 dark:text-gray-400">
+        {{ isEditMode ? 'Update venue information' : 'Add a new cricket ground or stadium' }}
+      </p>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading && isEditMode) {
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-12 text-center">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <p class="mt-4 text-gray-600 dark:text-gray-400">Loading venue data...</p>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error) {
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+        <p class="text-red-800 dark:text-red-200 font-medium">{{ error }}</p>
+      </div>
+    }
+
+    <!-- Form -->
+    @if (!loading || !isEditMode) {
+      <form [formGroup]="venueForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Venue Information Card -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6">
+          <h2 class="text-2xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+            <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+            </svg>
+            Venue Information
+          </h2>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Name -->
+            <div class="md:col-span-2">
+              <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Venue Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="name"
+                formControlName="name"
+                placeholder="e.g., Eden Gardens, Lord's Cricket Ground"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                [class.border-red-500]="submitted && f['name'].errors"
+              />
+              @if (submitted && f['name'].errors) {
+                <div class="text-red-500 text-sm mt-1">
+                  @if (f['name'].errors['required']) {
+                    <span>Venue name is required</span>
+                  }
+                </div>
+              }
+            </div>
+
+            <!-- City -->
+            <div>
+              <label for="city" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                City
+              </label>
+              <input
+                type="text"
+                id="city"
+                formControlName="city"
+                placeholder="e.g., Kolkata, London, Melbourne"
+                maxlength="100"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              />
+            </div>
+
+            <!-- Country Code -->
+            <div>
+              <label for="country_code" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Country Code
+              </label>
+              <input
+                type="text"
+                id="country_code"
+                formControlName="country_code"
+                placeholder="e.g., IND, AUS, ENG"
+                maxlength="3"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              />
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">ISO 3166-1 alpha-3 code</p>
+            </div>
+
+            <!-- Timezone -->
+            <div>
+              <label for="timezone_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Timezone
+              </label>
+              <input
+                type="text"
+                id="timezone_name"
+                formControlName="timezone_name"
+                placeholder="e.g., Asia/Kolkata, Europe/London"
+                maxlength="64"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              />
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">IANA timezone identifier</p>
+            </div>
+
+            <!-- Ends Names -->
+            <div>
+              <label for="ends_names" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                End Names
+              </label>
+              <input
+                type="text"
+                id="ends_names"
+                formControlName="ends_names"
+                placeholder="e.g., Pavilion End, Nursery End"
+                maxlength="200"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+              />
+              <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Comma-separated end names</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="flex gap-3 justify-end">
+          <button
+            type="button"
+            (click)="onCancel()"
+            class="px-6 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            [disabled]="loading"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            class="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50"
+            [disabled]="loading"
+          >
+            @if (loading) {
+              <span class="flex items-center">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Saving...
+              </span>
+            } @else {
+              <span>{{ isEditMode ? 'Update Venue' : 'Create Venue' }}</span>
+            }
+          </button>
+        </div>
+      </form>
+    }
   </div>
-
-  <!-- Loading State -->
-  @if (loading && isEditMode) {
-    <div class="flex justify-center items-center py-12">
-      <div class="spinner"></div>
-    </div>
-  }
-
-  <!-- Error State -->
-  @if (error) {
-    <div class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 p-4 rounded-lg mb-6">
-      {{ error }}
-    </div>
-  }
-
-  <!-- Form -->
-  @if (!loading || !isEditMode) {
-    <form [formGroup]="venueForm" (ngSubmit)="onSubmit()" class="card">
-      <!-- Name -->
-      <div class="mb-4">
-        <label for="name" class="form-label">
-          Venue Name <span class="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          id="name"
-          formControlName="name"
-          placeholder="e.g., Eden Gardens, Lord's Cricket Ground"
-          class="form-input"
-          [class.border-red-500]="submitted && f['name'].errors"
-        />
-        @if (submitted && f['name'].errors) {
-          <div class="text-red-500 text-sm mt-1">
-            @if (f['name'].errors['required']) {
-              <span>Venue name is required</span>
-            }
-            @if (f['name'].errors['minlength']) {
-              <span>Venue name must be at least 1 character</span>
-            }
-            @if (f['name'].errors['maxlength']) {
-              <span>Venue name must be less than 200 characters</span>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- City -->
-      <div class="mb-4">
-        <label for="city" class="form-label">
-          City
-        </label>
-        <input
-          type="text"
-          id="city"
-          formControlName="city"
-          placeholder="e.g., Kolkata, London, Melbourne"
-          maxlength="100"
-          class="form-input"
-          [class.border-red-500]="submitted && f['city'].errors"
-        />
-        <p class="text-sm text-gray-500 mt-1">City where the venue is located (optional)</p>
-        @if (submitted && f['city'].errors) {
-          <div class="text-red-500 text-sm mt-1">
-            @if (f['city'].errors['maxlength']) {
-              <span>City must be less than 100 characters</span>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- Country Code -->
-      <div class="mb-4">
-        <label for="country_code" class="form-label">
-          Country Code
-        </label>
-        <input
-          type="text"
-          id="country_code"
-          formControlName="country_code"
-          placeholder="e.g., IND, AUS, ENG"
-          maxlength="3"
-          class="form-input"
-          [class.border-red-500]="submitted && f['country_code'].errors"
-        />
-        <p class="text-sm text-gray-500 mt-1">ISO 3166-1 alpha-3 code (optional, max 3 characters)</p>
-        @if (submitted && f['country_code'].errors) {
-          <div class="text-red-500 text-sm mt-1">
-            @if (f['country_code'].errors['maxlength']) {
-              <span>Country code must be 3 characters or less</span>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- Timezone -->
-      <div class="mb-4">
-        <label for="timezone_name" class="form-label">
-          Timezone
-        </label>
-        <input
-          type="text"
-          id="timezone_name"
-          formControlName="timezone_name"
-          placeholder="e.g., Asia/Kolkata, Europe/London, Australia/Sydney"
-          maxlength="64"
-          class="form-input"
-          [class.border-red-500]="submitted && f['timezone_name'].errors"
-        />
-        <p class="text-sm text-gray-500 mt-1">IANA timezone identifier (optional)</p>
-        @if (submitted && f['timezone_name'].errors) {
-          <div class="text-red-500 text-sm mt-1">
-            @if (f['timezone_name'].errors['maxlength']) {
-              <span>Timezone must be less than 64 characters</span>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- Ends Names -->
-      <div class="mb-4">
-        <label for="ends_names" class="form-label">
-          End Names
-        </label>
-        <input
-          type="text"
-          id="ends_names"
-          formControlName="ends_names"
-          placeholder="e.g., Pavilion End, Nursery End"
-          maxlength="200"
-          class="form-input"
-          [class.border-red-500]="submitted && f['ends_names'].errors"
-        />
-        <p class="text-sm text-gray-500 mt-1">Names of the two ends of the ground (optional, comma-separated)</p>
-        @if (submitted && f['ends_names'].errors) {
-          <div class="text-red-500 text-sm mt-1">
-            @if (f['ends_names'].errors['maxlength']) {
-              <span>End names must be less than 200 characters</span>
-            }
-          </div>
-        }
-      </div>
-
-      <!-- Form Actions -->
-      <div class="flex gap-3 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
-        <button
-          type="button"
-          (click)="onCancel()"
-          class="btn btn-secondary"
-          [disabled]="loading"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          class="btn btn-primary"
-          [disabled]="loading"
-        >
-          @if (loading) {
-            <span>Saving...</span>
-          } @else {
-            <span>{{ isEditMode ? 'Update Venue' : 'Create Venue' }}</span>
-          }
-        </button>
-      </div>
-    </form>
-  }
 </div>
