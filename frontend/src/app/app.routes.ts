@@ -87,10 +87,11 @@ export const routes: Routes = [
   //   path: 'tournaments',
   //   loadChildren: () => import('./features/tournaments/tournaments.routes').then(m => m.TOURNAMENTS_ROUTES)
   // },
-  // {
-  //   path: 'matches',
-  //   loadChildren: () => import('./features/matches/matches.routes').then(m => m.MATCHES_ROUTES)
-  // },
+  {
+    path: 'matches',
+    loadChildren: () => import('./features/matches/matches.routes').then(m => m.MATCHES_ROUTES),
+    canActivate: [AuthGuard]
+  },
   // {
   //   path: 'statistics',
   //   loadChildren: () => import('./features/statistics/statistics.routes').then(m => m.STATISTICS_ROUTES)

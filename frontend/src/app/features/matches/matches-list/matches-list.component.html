@@ -1,0 +1,198 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+  <div class="container mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center">
+        <div>
+          <h1 class="text-4xl font-bold text-gray-800 mb-2">Matches</h1>
+          <p class="text-gray-600">Manage cricket matches and view schedules</p>
+        </div>
+        <a
+          routerLink="/matches/create"
+          class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-semibold"
+        >
+          + Create Match
+        </a>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+          <select
+            [(ngModel)]="statusFilter"
+            (change)="applyFilters()"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          >
+            <option value="">All Statuses</option>
+            <option *ngFor="let status of statusOptions" [value]="status">{{ status }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Match Type</label>
+          <select
+            [(ngModel)]="matchTypeFilter"
+            (change)="applyFilters()"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          >
+            <option value="">All Types</option>
+            <option *ngFor="let type of matchTypeOptions" [value]="type">{{ getMatchTypeLabel(type) }}</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="applyFilters()"
+            placeholder="Search matches..."
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          />
+        </div>
+
+        <div class="flex items-end">
+          <button
+            (click)="clearFilters()"
+            class="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+          >
+            Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="text-center py-12">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <p class="mt-4 text-gray-600">Loading matches...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !loading" class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+      <p class="text-red-800">{{ error }}</p>
+    </div>
+
+    <!-- Matches Grid -->
+    <div *ngIf="!loading && !error" class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div
+        *ngFor="let match of matches"
+        class="bg-white rounded-xl shadow-md hover:shadow-xl transition-all cursor-pointer overflow-hidden border border-gray-200 hover:border-indigo-300"
+        [routerLink]="['/matches', match.public_id]"
+      >
+        <!-- Match Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="text-white text-sm font-medium opacity-90">{{ getMatchTypeLabel(match.match_type) }}</span>
+              <span *ngIf="match.match_number" class="text-white text-sm font-medium opacity-90 ml-2">
+                - Match {{ match.match_number }}
+              </span>
+            </div>
+            <span [ngClass]="getStatusBadgeClass(match.status)">
+              {{ match.status }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Match Body -->
+        <div class="p-6">
+          <!-- Teams -->
+          <div class="mb-4">
+            <h3 class="text-xl font-bold text-gray-800 text-center mb-3">
+              {{ getTeamsDisplay(match) }}
+            </h3>
+          </div>
+
+          <!-- Match Details -->
+          <div class="space-y-2 text-sm text-gray-600">
+            <div class="flex items-center">
+              <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <span>{{ formatDate(match.scheduled_start) }}</span>
+            </div>
+
+            <div *ngIf="match.venue" class="flex items-center">
+              <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              <span>{{ match.venue.name }}, {{ match.venue.city }}</span>
+            </div>
+
+            <div *ngIf="match.tournament" class="flex items-center">
+              <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+              </svg>
+              <span>{{ match.tournament.name }}</span>
+            </div>
+
+            <div *ngIf="match.overs_per_innings" class="flex items-center">
+              <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>{{ match.overs_per_innings }} overs per innings</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="!loading && !error && matches.length === 0" class="bg-white rounded-xl shadow-md p-12 text-center">
+      <svg class="w-24 h-24 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+      </svg>
+      <h3 class="text-xl font-semibold text-gray-700 mb-2">No matches found</h3>
+      <p class="text-gray-500 mb-6">Get started by creating your first match</p>
+      <a
+        routerLink="/matches/create"
+        class="inline-block px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg font-semibold"
+      >
+        Create Match
+      </a>
+    </div>
+
+    <!-- Pagination -->
+    <div *ngIf="!loading && !error && matches.length > 0" class="bg-white rounded-xl shadow-md p-6">
+      <div class="flex justify-between items-center">
+        <div class="text-sm text-gray-600">
+          Showing {{ (currentPage - 1) * pageSize + 1 }} to {{ Math.min(currentPage * pageSize, totalMatches) }} of {{ totalMatches }} matches
+        </div>
+
+        <div class="flex space-x-2">
+          <button
+            (click)="previousPage()"
+            [disabled]="currentPage === 1"
+            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Previous
+          </button>
+
+          <div class="flex space-x-1">
+            <button
+              *ngFor="let page of [].constructor(totalPages); let i = index"
+              (click)="goToPage(i + 1)"
+              [ngClass]="{'bg-indigo-600 text-white': currentPage === i + 1, 'bg-gray-200 text-gray-700': currentPage !== i + 1}"
+              class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+            >
+              {{ i + 1 }}
+            </button>
+          </div>
+
+          <button
+            (click)="nextPage()"
+            [disabled]="currentPage === totalPages"
+            class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,304 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 py-8">
+  <div class="container mx-auto px-4 max-w-4xl">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-800 mb-2">
+        {{ isEditMode ? 'Edit Match' : 'Create New Match' }}
+      </h1>
+      <p class="text-gray-600">
+        {{ isEditMode ? 'Update match details' : 'Schedule a new cricket match' }}
+      </p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="loadingData" class="bg-white rounded-xl shadow-md p-12 text-center">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      <p class="mt-4 text-gray-600">Loading form data...</p>
+    </div>
+
+    <!-- Form -->
+    <form *ngIf="!loadingData" [formGroup]="matchForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      <!-- Success Message -->
+      <div *ngIf="successMessage" class="bg-green-50 border border-green-200 rounded-lg p-4">
+        <p class="text-green-800 font-medium">{{ successMessage }}</p>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="error" class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <p class="text-red-800 font-medium">{{ error }}</p>
+      </div>
+
+      <!-- Match Details Card -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+          <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+          </svg>
+          Match Details
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Match Type -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Match Type <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="match_type"
+              (change)="onMatchTypeChange($event)"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              [class.border-red-500]="matchForm.get('match_type')?.invalid && matchForm.get('match_type')?.touched"
+            >
+              <option *ngFor="let type of matchTypeOptions" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+
+          <!-- Status -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Status <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="status"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option *ngFor="let status of matchStatusOptions" [value]="status">{{ status }}</option>
+            </select>
+          </div>
+
+          <!-- Match Number -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Match Number</label>
+            <input
+              type="text"
+              formControlName="match_number"
+              placeholder="e.g., Match 1, Semi Final"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+
+          <!-- Overs Per Innings -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Overs Per Innings</label>
+            <input
+              type="number"
+              formControlName="overs_per_innings"
+              min="1"
+              placeholder="20"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+            <p class="text-sm text-gray-500 mt-1">Leave empty for Test matches</p>
+          </div>
+
+          <!-- Scheduled Start -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Scheduled Start</label>
+            <input
+              type="datetime-local"
+              formControlName="scheduled_start"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            />
+          </div>
+
+          <!-- Tournament -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Tournament</label>
+            <select
+              formControlName="tournament_id"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="">No Tournament</option>
+              <option *ngFor="let tournament of tournaments" [value]="tournament.public_id">
+                {{ tournament.name }} ({{ tournament.season }})
+              </option>
+            </select>
+          </div>
+
+          <!-- Checkboxes -->
+          <div class="col-span-2 space-y-3">
+            <label class="flex items-center">
+              <input type="checkbox" formControlName="is_day_night" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2" />
+              <span class="text-sm font-medium text-gray-700">Day-Night Match</span>
+            </label>
+            <label class="flex items-center">
+              <input type="checkbox" formControlName="is_neutral_venue" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2" />
+              <span class="text-sm font-medium text-gray-700">Neutral Venue</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Venue Card -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+          <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+          </svg>
+          Venue
+        </h2>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">
+            Select Venue <span class="text-red-500">*</span>
+          </label>
+          <select
+            formControlName="venue_id"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            [class.border-red-500]="matchForm.get('venue_id')?.invalid && matchForm.get('venue_id')?.touched"
+          >
+            <option value="">Select a venue</option>
+            <option *ngFor="let venue of venues" [value]="venue.public_id">
+              {{ venue.name }} - {{ venue.city }}, {{ venue.country_code }}
+            </option>
+          </select>
+          <p *ngIf="matchForm.get('venue_id')?.invalid && matchForm.get('venue_id')?.touched" class="text-red-500 text-sm mt-1">
+            Venue is required
+          </p>
+        </div>
+      </div>
+
+      <!-- Teams Card -->
+      <div class="bg-white rounded-xl shadow-md p-6" [class.pointer-events-none]="isEditMode" [class.opacity-60]="isEditMode">
+        <h2 class="text-2xl font-bold text-gray-800 mb-6 flex items-center">
+          <svg class="w-6 h-6 mr-2 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+          </svg>
+          Teams
+        </h2>
+
+        <div class="space-y-6">
+          <!-- Team 1 -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="font-semibold text-gray-700 mb-4">Team 1</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Select Team <span class="text-red-500">*</span>
+                </label>
+                <select
+                  formControlName="team1_id"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  [class.border-red-500]="matchForm.get('team1_id')?.invalid && matchForm.get('team1_id')?.touched"
+                >
+                  <option value="">Select a team</option>
+                  <option *ngFor="let team of teams" [value]="team.public_id">
+                    {{ team.name }} ({{ team.short_name }})
+                  </option>
+                </select>
+                <p *ngIf="matchForm.get('team1_id')?.invalid && matchForm.get('team1_id')?.touched" class="text-red-500 text-sm mt-1">
+                  Team 1 is required
+                </p>
+              </div>
+              <label class="flex items-center">
+                <input type="checkbox" formControlName="team1_is_home" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2" />
+                <span class="text-sm font-medium text-gray-700">Home Team</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Team 2 -->
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="font-semibold text-gray-700 mb-4">Team 2</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">
+                  Select Team <span class="text-red-500">*</span>
+                </label>
+                <select
+                  formControlName="team2_id"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  [class.border-red-500]="matchForm.get('team2_id')?.invalid && matchForm.get('team2_id')?.touched"
+                >
+                  <option value="">Select a team</option>
+                  <option *ngFor="let team of teams" [value]="team.public_id">
+                    {{ team.name }} ({{ team.short_name }})
+                  </option>
+                </select>
+                <p *ngIf="matchForm.get('team2_id')?.invalid && matchForm.get('team2_id')?.touched" class="text-red-500 text-sm mt-1">
+                  Team 2 is required
+                </p>
+              </div>
+              <label class="flex items-center">
+                <input type="checkbox" formControlName="team2_is_home" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2" />
+                <span class="text-sm font-medium text-gray-700">Home Team</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <p *ngIf="isEditMode" class="text-sm text-amber-600 mt-4 flex items-center">
+          <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          Teams cannot be changed after match creation
+        </p>
+      </div>
+
+      <!-- Toss Card (Optional) -->
+      <div class="bg-white rounded-xl shadow-md p-6">
+        <div class="flex items-center mb-6">
+          <input
+            type="checkbox"
+            formControlName="include_toss"
+            id="include_toss"
+            class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-3 h-5 w-5"
+          />
+          <label for="include_toss" class="text-2xl font-bold text-gray-800 cursor-pointer">
+            Include Toss (Optional)
+          </label>
+        </div>
+
+        <div *ngIf="matchForm.get('include_toss')?.value" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Toss Winner</label>
+            <select
+              formControlName="toss_winner_id"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="">Select toss winner</option>
+              <option *ngFor="let team of teams" [value]="team.public_id">
+                {{ team.name }}
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">Elected To</label>
+            <select
+              formControlName="toss_elected_to"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+            >
+              <option value="BAT">Bat First</option>
+              <option value="BOWL">Bowl First</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex justify-end space-x-4">
+        <button
+          type="button"
+          (click)="cancel()"
+          [disabled]="loading"
+          class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          [disabled]="loading || matchForm.invalid"
+          class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+        >
+          <span *ngIf="loading" class="mr-2">
+            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </span>
+          {{ loading ? 'Saving...' : (isEditMode ? 'Update Match' : 'Create Match') }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

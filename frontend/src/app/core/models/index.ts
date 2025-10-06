@@ -209,52 +209,78 @@ export enum TossDecision {
   BOWL = 'BOWL'
 }
 
+export interface MatchTeam {
+  team_id: string;
+  is_home: boolean;
+}
+
+export interface MatchToss {
+  toss_winner_id: string;
+  elected_to: 'BAT' | 'BOWL';
+}
+
 export interface Match extends TimestampMixin, PublicIdMixin {
   id: number;
-  tournament_id?: number;
-  venue_id?: number;
-  match_type: MatchType;
+  venue_id: string;
+  tournament_id?: string;
   match_number?: string;
-  start_time: string;
+  match_type: MatchType;
   status: MatchStatus;
+  scheduled_start?: string;
+  actual_start?: string;
+  end_time?: string;
   overs_per_innings?: number;
-  is_day_night?: boolean;
-  result?: string;
-  winner_team_id?: number;
-  tournament?: TournamentSummary;
+  is_day_night: boolean;
+  is_neutral_venue: boolean;
+  result_type?: string;
+  winning_team_id?: string;
+  result_margin?: string;
   venue?: VenueSummary;
+  tournament?: TournamentSummary;
   teams?: TeamSummary[];
-  toss_winner_team_id?: number;
-  toss_decision?: TossDecision;
+  toss_winner?: TeamSummary;
+  winning_team?: TeamSummary;
 }
 
 export interface MatchCreate {
-  tournament_id?: number;
-  venue_id?: number;
-  match_type: MatchType;
+  venue_id: string;
+  tournament_id?: string;
   match_number?: string;
-  start_time: string;
+  match_type: MatchType;
+  status?: MatchStatus;
+  scheduled_start?: string;
+  actual_start?: string;
+  end_time?: string;
   overs_per_innings?: number;
   is_day_night?: boolean;
-  team_ids: number[];
+  is_neutral_venue?: boolean;
+  result_type?: string;
+  winning_team_id?: string;
+  result_margin?: string;
+  teams: MatchTeam[];
+  toss?: MatchToss;
 }
 
 export interface MatchUpdate {
-  tournament_id?: number;
-  venue_id?: number;
-  match_type?: MatchType;
+  venue_id?: string;
+  tournament_id?: string;
   match_number?: string;
-  start_time?: string;
+  match_type?: MatchType;
   status?: MatchStatus;
+  scheduled_start?: string;
+  actual_start?: string;
+  end_time?: string;
   overs_per_innings?: number;
   is_day_night?: boolean;
-  result?: string;
-  winner_team_id?: number;
+  is_neutral_venue?: boolean;
+  result_type?: string;
+  winning_team_id?: string;
+  result_margin?: string;
 }
 
 export interface TossInfo {
-  toss_winner_team_id: number;
-  toss_decision: TossDecision;
+  toss_winner_id: string;
+  elected_to: 'BAT' | 'BOWL';
 }
 
 // Innings interfaces
