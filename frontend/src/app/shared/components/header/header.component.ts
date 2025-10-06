@@ -25,6 +25,10 @@ import { Subject, takeUntil } from 'rxjs';
                  class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                 Dashboard
               </a>
+              <a routerLink="/tournaments" routerLinkActive="text-indigo-600 dark:text-indigo-400" 
+                 class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                Tournaments
+              </a>
               <a routerLink="/matches" routerLinkActive="text-indigo-600 dark:text-indigo-400" 
                  class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                 Matches
@@ -40,6 +44,10 @@ import { Subject, takeUntil } from 'rxjs';
               <a routerLink="/players" routerLinkActive="text-indigo-600 dark:text-indigo-400" 
                  class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
                 Players
+              </a>
+              <a routerLink="/venues" routerLinkActive="text-indigo-600 dark:text-indigo-400" 
+                 class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
+                Venues
               </a>
               <a routerLink="/statistics" routerLinkActive="text-indigo-600 dark:text-indigo-400" 
                  class="hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors">
@@ -185,8 +193,11 @@ import { Subject, takeUntil } from 'rxjs';
                 <p class="text-sm font-medium text-gray-900 dark:text-white">{{ currentUser.name }}</p>
                 <p class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ currentUser.email }}</p>
               </div>
+                          @if (isAuthenticated && currentUser) {
               <a routerLink="/dashboard" (click)="closeMobileMenu()" 
                  class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Dashboard</a>
+              <a routerLink="/tournaments" (click)="closeMobileMenu()" 
+                 class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Tournaments</a>
               <a routerLink="/matches" (click)="closeMobileMenu()" 
                  class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Matches</a>
               <a routerLink="/live-scoring" (click)="closeMobileMenu()" 
@@ -195,6 +206,8 @@ import { Subject, takeUntil } from 'rxjs';
                  class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Teams</a>
               <a routerLink="/players" (click)="closeMobileMenu()" 
                  class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Players</a>
+              <a routerLink="/venues" (click)="closeMobileMenu()" 
+                 class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Venues</a>
               <a routerLink="/statistics" (click)="closeMobileMenu()" 
                  class="block py-2 px-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">Statistics</a>
               
