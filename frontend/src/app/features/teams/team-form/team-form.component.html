@@ -135,7 +135,7 @@
               [src]="teamForm.get('logo_url')?.value"
               alt="Logo preview"
               class="w-16 h-16 rounded object-cover border border-gray-300"
-              (error)="$event.target.src=''"
+              (error)="onImageError($event)"
             />
           </div>
         }

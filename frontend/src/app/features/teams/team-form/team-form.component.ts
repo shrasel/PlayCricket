@@ -115,6 +115,11 @@ export class TeamFormComponent implements OnInit {
     }
   }
 
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = '';
+  }
+
   get f() {
     return this.teamForm.controls;
   }
