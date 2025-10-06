@@ -1,0 +1,264 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Tournaments</h1>
+      <p class="text-gray-600 dark:text-gray-400">Manage cricket tournaments and competitions</p>
+    </div>
+
+    <!-- Filters and Actions -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <!-- Search -->
+        <div class="flex-1 max-w-md">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input 
+              type="text" 
+              [(ngModel)]="searchTerm"
+              (input)="applyFilters()"
+              placeholder="Search tournaments..." 
+              class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+          </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="flex flex-wrap gap-3">
+          <!-- Match Type Filter -->
+          <select 
+            [(ngModel)]="matchTypeFilter"
+            (change)="applyFilters()"
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All Match Types</option>
+            <option value="Test">Test</option>
+            <option value="ODI">ODI</option>
+            <option value="T20">T20</option>
+            <option value="T10">T10</option>
+          </select>
+
+          <!-- Season Filter -->
+          <select 
+            [(ngModel)]="seasonFilter"
+            (change)="applyFilters()"
+            class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">All Seasons</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022</option>
+          </select>
+
+          <!-- Clear Filters -->
+          @if (searchTerm || matchTypeFilter || seasonFilter) {
+            <button 
+              (click)="clearFilters()"
+              class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors">
+              Clear Filters
+            </button>
+          }
+        </div>
+
+        <!-- Create Button -->
+        <button 
+          routerLink="/tournaments/create"
+          class="inline-flex items-center px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg">
+          <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </svg>
+          Create Tournament
+        </button>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error && !loading) {
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+        <div class="flex items-center">
+          <svg class="h-5 w-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="text-red-800 dark:text-red-200">{{ error }}</p>
+        </div>
+      </div>
+    }
+
+    <!-- Empty State -->
+    @if (!loading && filteredTournaments.length === 0) {
+      <div class="text-center py-12 bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+        <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">No tournaments found</h3>
+        <p class="mt-1 text-gray-500 dark:text-gray-400">Get started by creating your first tournament.</p>
+        <div class="mt-6">
+          <button 
+            routerLink="/tournaments/create"
+            class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-lg hover:from-indigo-700 hover:to-purple-700 transition-all shadow-md hover:shadow-lg">
+            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+            </svg>
+            Create Tournament
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Tournaments Grid -->
+    @if (!loading && filteredTournaments.length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        @for (tournament of getPaginatedTournaments(); track tournament.id) {
+          <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm hover:shadow-md transition-shadow overflow-hidden group">
+            <!-- Tournament Header with Gradient -->
+            <div class="relative bg-gradient-to-br from-indigo-500 to-purple-600 px-6 py-8">
+              <div class="absolute inset-0 bg-black/10"></div>
+              <div class="relative">
+                <div class="flex items-center justify-between mb-4">
+                  <div class="h-14 w-14 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center ring-2 ring-white/50">
+                    <span class="text-2xl font-bold text-white">{{ getTournamentInitials(tournament.name) }}</span>
+                  </div>
+                  @if (tournament.match_type) {
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-white/20 backdrop-blur-sm text-white border border-white/30">
+                      {{ tournament.match_type }}
+                    </span>
+                  }
+                </div>
+                <h3 class="text-xl font-bold text-white mb-1">{{ tournament.name }}</h3>
+                @if (tournament.short_name) {
+                  <p class="text-white/80 text-sm">{{ tournament.short_name }}</p>
+                }
+              </div>
+            </div>
+
+            <!-- Tournament Details -->
+            <div class="px-6 py-4">
+              <dl class="space-y-2">
+                @if (tournament.season) {
+                  <div class="flex items-center text-sm">
+                    <dt class="text-gray-500 dark:text-gray-400 w-24">Season:</dt>
+                    <dd class="text-gray-900 dark:text-white font-medium">{{ tournament.season }}</dd>
+                  </div>
+                }
+                @if (tournament.start_date) {
+                  <div class="flex items-center text-sm">
+                    <dt class="text-gray-500 dark:text-gray-400 w-24">Start Date:</dt>
+                    <dd class="text-gray-900 dark:text-white">{{ formatDate(tournament.start_date) }}</dd>
+                  </div>
+                }
+                @if (tournament.end_date) {
+                  <div class="flex items-center text-sm">
+                    <dt class="text-gray-500 dark:text-gray-400 w-24">End Date:</dt>
+                    <dd class="text-gray-900 dark:text-white">{{ formatDate(tournament.end_date) }}</dd>
+                  </div>
+                }
+              </dl>
+
+              <!-- Action Buttons -->
+              <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex gap-2">
+                <button 
+                  [routerLink]="['/tournaments', tournament.id]"
+                  class="flex-1 px-4 py-2 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg hover:bg-indigo-100 dark:hover:bg-indigo-900/50 transition-colors text-sm font-medium">
+                  View Details
+                </button>
+                <button 
+                  [routerLink]="['/tournaments', tournament.id, 'edit']"
+                  class="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm font-medium">
+                  Edit
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (getTotalPages() > 1) {
+        <div class="flex items-center justify-between bg-white dark:bg-gray-800 px-6 py-4 rounded-lg shadow-sm">
+          <div class="flex-1 flex justify-between sm:hidden">
+            <button 
+              (click)="goToPage(currentPage - 1)"
+              [disabled]="currentPage === 1"
+              [class.opacity-50]="currentPage === 1"
+              [class.cursor-not-allowed]="currentPage === 1"
+              class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+              Previous
+            </button>
+            <button 
+              (click)="goToPage(currentPage + 1)"
+              [disabled]="currentPage === getTotalPages()"
+              [class.opacity-50]="currentPage === getTotalPages()"
+              [class.cursor-not-allowed]="currentPage === getTotalPages()"
+              class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+              Next
+            </button>
+          </div>
+          <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p class="text-sm text-gray-700 dark:text-gray-300">
+                Showing
+                <span class="font-medium">{{ (currentPage - 1) * pageSize + 1 }}</span>
+                to
+                <span class="font-medium">{{ Math.min(currentPage * pageSize, filteredTournaments.length) }}</span>
+                of
+                <span class="font-medium">{{ filteredTournaments.length }}</span>
+                results
+              </p>
+            </div>
+            <div>
+              <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button 
+                  (click)="goToPage(currentPage - 1)"
+                  [disabled]="currentPage === 1"
+                  [class.opacity-50]="currentPage === 1"
+                  [class.cursor-not-allowed]="currentPage === 1"
+                  class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600">
+                  <span class="sr-only">Previous</span>
+                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+                
+                @for (page of getPageNumbers(); track page) {
+                  <button 
+                    (click)="goToPage(page)"
+                    [class.bg-indigo-50]="page === currentPage"
+                    [class.dark:bg-indigo-900/30]="page === currentPage"
+                    [class.border-indigo-500]="page === currentPage"
+                    [class.dark:border-indigo-400]="page === currentPage"
+                    [class.text-indigo-600]="page === currentPage"
+                    [class.dark:text-indigo-400]="page === currentPage"
+                    [class.z-10]="page === currentPage"
+                    class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600">
+                    {{ page }}
+                  </button>
+                }
+
+                <button 
+                  (click)="goToPage(currentPage + 1)"
+                  [disabled]="currentPage === getTotalPages()"
+                  [class.opacity-50]="currentPage === getTotalPages()"
+                  [class.cursor-not-allowed]="currentPage === getTotalPages()"
+                  class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600">
+                  <span class="sr-only">Next</span>
+                  <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+              </nav>
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -69,18 +69,7 @@ export class TournamentsListComponent implements OnInit {
       
       return matchesSearch && matchesType && matchesSeason;
     });
-  }
-
-  onSearchChange(): void {
-    this.applyFilters();
-  }
-
-  onMatchTypeChange(): void {
-    this.applyFilters();
-  }
-
-  onSeasonChange(): void {
-    this.applyFilters();
+    this.currentPage = 1; // Reset to first page when filters change
   }
 
   clearFilters(): void {
@@ -90,22 +79,41 @@ export class TournamentsListComponent implements OnInit {
     this.applyFilters();
   }
 
-  nextPage(): void {
-    if (this.currentPage * this.pageSize < this.totalTournaments) {
-      this.currentPage++;
-      this.loadTournaments();
-    }
+  getPaginatedTournaments(): Tournament[] {
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    return this.filteredTournaments.slice(startIndex, endIndex);
   }
 
-  previousPage(): void {
-    if (this.currentPage > 1) {
-      this.currentPage--;
-      this.loadTournaments();
-    }
+  getTotalPages(): number {
+    return Math.ceil(this.filteredTournaments.length / this.pageSize);
   }
 
-  get totalPages(): number {
-    return Math.ceil(this.totalTournaments / this.pageSize);
+  getPageNumbers(): number[] {
+    const totalPages = this.getTotalPages();
+    const pages: number[] = [];
+    const maxPagesToShow = 5;
+    
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const startPage = Math.max(1, this.currentPage - 2);
+      const endPage = Math.min(totalPages, startPage + maxPagesToShow - 1);
+      
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
+  }
+
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.getTotalPages()) {
+      this.currentPage = page;
+    }
   }
 
   get Math() {
