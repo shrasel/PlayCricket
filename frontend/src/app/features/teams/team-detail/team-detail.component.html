@@ -1,0 +1,201 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="flex justify-center items-center py-12">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error) {
+    <div class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 p-4 rounded-lg mb-6">
+      {{ error }}
+    </div>
+  }
+
+  <!-- Team Details -->
+  @if (team && !loading) {
+    <div class="max-w-4xl mx-auto">
+      <!-- Header with Team Info -->
+      <div class="card mb-6">
+        <!-- Gradient Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-8 rounded-t-lg -m-6 mb-6">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              @if (team.logo_url) {
+                <img
+                  [src]="team.logo_url"
+                  [alt]="team.name"
+                  class="w-24 h-24 rounded-full bg-white object-cover border-4 border-white/30"
+                />
+              } @else {
+                <div class="w-24 h-24 rounded-full bg-white/20 flex items-center justify-center text-3xl font-bold border-4 border-white/30">
+                  {{ getTeamInitials(team.name) }}
+                </div>
+              }
+              <div>
+                <h1 class="text-3xl font-bold">{{ team.name }}</h1>
+                <p class="text-xl text-white/90 mt-1">{{ team.short_name }}</p>
+                @if (team.country_code) {
+                  <div class="mt-2 flex items-center space-x-2">
+                    <span class="text-2xl">{{ getCountryFlag(team.country_code) }}</span>
+                    <span class="text-white/80">{{ team.country_code }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+            <a routerLink="/teams" class="text-white/90 hover:text-white">
+              ← Back to Teams
+            </a>
+          </div>
+        </div>
+
+        <!-- Team Information Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Basic Information -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Basic Information
+            </h3>
+            <dl class="space-y-3">
+              <div>
+                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Full Name</dt>
+                <dd class="text-gray-900 dark:text-white">{{ team.name }}</dd>
+              </div>
+              <div>
+                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Short Name</dt>
+                <dd class="text-gray-900 dark:text-white">{{ team.short_name }}</dd>
+              </div>
+              @if (team.country_code) {
+                <div>
+                  <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Country</dt>
+                  <dd class="text-gray-900 dark:text-white flex items-center space-x-2">
+                    <span>{{ getCountryFlag(team.country_code) }}</span>
+                    <span>{{ team.country_code }}</span>
+                  </dd>
+                </div>
+              }
+            </dl>
+          </div>
+
+          <!-- Team Colors -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Team Colors
+            </h3>
+            @if (team.primary_color || team.secondary_color) {
+              <div class="space-y-3">
+                @if (team.primary_color) {
+                  <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Primary Color</dt>
+                    <dd class="flex items-center space-x-3">
+                      <div
+                        class="w-16 h-16 rounded border border-gray-300"
+                        [style.background-color]="team.primary_color"
+                      ></div>
+                      <span class="text-gray-900 dark:text-white font-mono">{{ team.primary_color }}</span>
+                    </dd>
+                  </div>
+                }
+                @if (team.secondary_color) {
+                  <div>
+                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Secondary Color</dt>
+                    <dd class="flex items-center space-x-3">
+                      <div
+                        class="w-16 h-16 rounded border border-gray-300"
+                        [style.background-color]="team.secondary_color"
+                      ></div>
+                      <span class="text-gray-900 dark:text-white font-mono">{{ team.secondary_color }}</span>
+                    </dd>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="text-gray-500 dark:text-gray-400 italic">No team colors set</p>
+            }
+          </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+          <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Metadata
+          </h3>
+          <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Team ID</dt>
+              <dd class="text-gray-900 dark:text-white font-mono text-sm">{{ team.public_id }}</dd>
+            </div>
+            @if (team.created_at) {
+              <div>
+                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Created</dt>
+                <dd class="text-gray-900 dark:text-white">{{ formatDate(team.created_at) }}</dd>
+              </div>
+            }
+            @if (team.updated_at) {
+              <div>
+                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Updated</dt>
+                <dd class="text-gray-900 dark:text-white">{{ formatDate(team.updated_at) }}</dd>
+              </div>
+            }
+          </dl>
+        </div>
+      </div>
+
+      <!-- Actions Card -->
+      <div class="card">
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+          Actions
+        </h3>
+        <div class="flex gap-3">
+          <button
+            (click)="onEdit()"
+            class="btn btn-primary"
+          >
+            ✏️ Edit Team
+          </button>
+          <button
+            (click)="onDelete()"
+            class="btn btn-danger"
+          >
+            🗑️ Delete Team
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Delete Confirmation Modal -->
+  @if (showDeleteModal) {
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">
+          Confirm Delete
+        </h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">
+          Are you sure you want to delete <strong>{{ team?.name }}</strong>? This action cannot be undone.
+        </p>
+        <div class="flex gap-3 justify-end">
+          <button
+            (click)="cancelDelete()"
+            class="btn btn-secondary"
+            [disabled]="deleting"
+          >
+            Cancel
+          </button>
+          <button
+            (click)="confirmDelete()"
+            class="btn btn-danger"
+            [disabled]="deleting"
+          >
+            @if (deleting) {
+              <span>Deleting...</span>
+            } @else {
+              <span>Delete</span>
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

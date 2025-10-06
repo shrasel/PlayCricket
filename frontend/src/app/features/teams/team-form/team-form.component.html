@@ -1,0 +1,242 @@
+<div class="container mx-auto px-4 py-8 max-w-2xl">
+  <!-- Header -->
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+      {{ isEditMode ? 'Edit Team' : 'Create Team' }}
+    </h1>
+    <p class="text-gray-600 dark:text-gray-400 mt-2">
+      {{ isEditMode ? 'Update team information' : 'Add a new team to the system' }}
+    </p>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading && isEditMode) {
+    <div class="flex justify-center items-center py-12">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error) {
+    <div class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 p-4 rounded-lg mb-6">
+      {{ error }}
+    </div>
+  }
+
+  <!-- Form -->
+  @if (!loading || !isEditMode) {
+    <form [formGroup]="teamForm" (ngSubmit)="onSubmit()" class="card">
+      <!-- Name -->
+      <div class="mb-4">
+        <label for="name" class="form-label">
+          Team Name <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="name"
+          formControlName="name"
+          placeholder="e.g., India National Cricket Team"
+          class="form-input"
+          [class.border-red-500]="submitted && f['name'].errors"
+        />
+        @if (submitted && f['name'].errors) {
+          <div class="text-red-500 text-sm mt-1">
+            @if (f['name'].errors['required']) {
+              <span>Team name is required</span>
+            }
+            @if (f['name'].errors['minlength']) {
+              <span>Team name must be at least 1 character</span>
+            }
+            @if (f['name'].errors['maxlength']) {
+              <span>Team name must be less than 100 characters</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Short Name -->
+      <div class="mb-4">
+        <label for="short_name" class="form-label">
+          Short Name <span class="text-red-500">*</span>
+        </label>
+        <input
+          type="text"
+          id="short_name"
+          formControlName="short_name"
+          placeholder="e.g., IND"
+          maxlength="10"
+          class="form-input"
+          [class.border-red-500]="submitted && f['short_name'].errors"
+        />
+        <p class="text-sm text-gray-500 mt-1">Abbreviated name (max 10 characters)</p>
+        @if (submitted && f['short_name'].errors) {
+          <div class="text-red-500 text-sm mt-1">
+            @if (f['short_name'].errors['required']) {
+              <span>Short name is required</span>
+            }
+            @if (f['short_name'].errors['minlength']) {
+              <span>Short name must be at least 1 character</span>
+            }
+            @if (f['short_name'].errors['maxlength']) {
+              <span>Short name must be less than 10 characters</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Country Code -->
+      <div class="mb-4">
+        <label for="country_code" class="form-label">
+          Country Code
+        </label>
+        <input
+          type="text"
+          id="country_code"
+          formControlName="country_code"
+          placeholder="e.g., IND, AUS, ENG"
+          maxlength="3"
+          class="form-input"
+          [class.border-red-500]="submitted && f['country_code'].errors"
+        />
+        <p class="text-sm text-gray-500 mt-1">ISO 3166-1 alpha-3 code (optional, max 3 characters)</p>
+        @if (submitted && f['country_code'].errors) {
+          <div class="text-red-500 text-sm mt-1">
+            @if (f['country_code'].errors['maxlength']) {
+              <span>Country code must be 3 characters or less</span>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Logo URL -->
+      <div class="mb-4">
+        <label for="logo_url" class="form-label">
+          Logo URL
+        </label>
+        <input
+          type="url"
+          id="logo_url"
+          formControlName="logo_url"
+          placeholder="https://example.com/logo.png"
+          class="form-input"
+          [class.border-red-500]="submitted && f['logo_url'].errors"
+        />
+        <p class="text-sm text-gray-500 mt-1">URL to team logo image (optional)</p>
+        @if (submitted && f['logo_url'].errors) {
+          <div class="text-red-500 text-sm mt-1">
+            @if (f['logo_url'].errors['maxlength']) {
+              <span>Logo URL must be less than 500 characters</span>
+            }
+          </div>
+        }
+        @if (teamForm.get('logo_url')?.value) {
+          <div class="mt-2">
+            <img
+              [src]="teamForm.get('logo_url')?.value"
+              alt="Logo preview"
+              class="w-16 h-16 rounded object-cover border border-gray-300"
+              (error)="$event.target.src=''"
+            />
+          </div>
+        }
+      </div>
+
+      <!-- Team Colors -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+        <!-- Primary Color -->
+        <div>
+          <label for="primary_color" class="form-label">
+            Primary Color
+          </label>
+          <div class="flex gap-2">
+            <input
+              type="color"
+              id="primary_color"
+              formControlName="primary_color"
+              class="h-10 w-16 rounded border border-gray-300"
+            />
+            <input
+              type="text"
+              formControlName="primary_color"
+              placeholder="#000000"
+              class="form-input flex-1"
+            />
+          </div>
+          <p class="text-sm text-gray-500 mt-1">Primary team color (optional)</p>
+        </div>
+
+        <!-- Secondary Color -->
+        <div>
+          <label for="secondary_color" class="form-label">
+            Secondary Color
+          </label>
+          <div class="flex gap-2">
+            <input
+              type="color"
+              id="secondary_color"
+              formControlName="secondary_color"
+              class="h-10 w-16 rounded border border-gray-300"
+            />
+            <input
+              type="text"
+              formControlName="secondary_color"
+              placeholder="#FFFFFF"
+              class="form-input flex-1"
+            />
+          </div>
+          <p class="text-sm text-gray-500 mt-1">Secondary team color (optional)</p>
+        </div>
+      </div>
+
+      <!-- Color Preview -->
+      @if (teamForm.get('primary_color')?.value || teamForm.get('secondary_color')?.value) {
+        <div class="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded">
+          <p class="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Color Preview:</p>
+          <div class="flex gap-4">
+            @if (teamForm.get('primary_color')?.value) {
+              <div class="text-center">
+                <div
+                  class="w-20 h-20 rounded border border-gray-300 mb-1"
+                  [style.background-color]="teamForm.get('primary_color')?.value"
+                ></div>
+                <p class="text-xs text-gray-600 dark:text-gray-400">Primary</p>
+              </div>
+            }
+            @if (teamForm.get('secondary_color')?.value) {
+              <div class="text-center">
+                <div
+                  class="w-20 h-20 rounded border border-gray-300 mb-1"
+                  [style.background-color]="teamForm.get('secondary_color')?.value"
+                ></div>
+                <p class="text-xs text-gray-600 dark:text-gray-400">Secondary</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Form Actions -->
+      <div class="flex gap-3 justify-end pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button
+          type="button"
+          (click)="onCancel()"
+          class="btn btn-secondary"
+          [disabled]="loading"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn btn-primary"
+          [disabled]="loading"
+        >
+          @if (loading) {
+            <span>Saving...</span>
+          } @else {
+            <span>{{ isEditMode ? 'Update Team' : 'Create Team' }}</span>
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>

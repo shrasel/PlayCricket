@@ -71,10 +71,11 @@ export const routes: Routes = [
   },
 
   // Temporarily commented out until components are created
-  // {
-  //   path: 'teams',
-  //   loadChildren: () => import('./features/teams/teams.routes').then(m => m.TEAMS_ROUTES)
-  // },
+  {
+    path: 'teams',
+    loadChildren: () => import('./features/teams/teams.routes').then(m => m.TEAMS_ROUTES),
+    canActivate: [AuthGuard]
+  },
   // {
   //   path: 'players',
   //   loadChildren: () => import('./features/players/players.routes').then(m => m.PLAYERS_ROUTES)

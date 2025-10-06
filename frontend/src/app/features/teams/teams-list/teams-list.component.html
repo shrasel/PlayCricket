@@ -1,0 +1,189 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Teams</h1>
+    <a routerLink="/teams/create" class="btn btn-primary">
+      ➕ Create Team
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Search -->
+      <div>
+        <label class="form-label">Search</label>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+          placeholder="Search by name..."
+          class="form-input"
+        />
+      </div>
+
+      <!-- Country Filter -->
+      <div>
+        <label class="form-label">Country Code</label>
+        <input
+          type="text"
+          [(ngModel)]="countryFilter"
+          (ngModelChange)="onCountryFilterChange()"
+          placeholder="e.g., IND, AUS"
+          maxlength="3"
+          class="form-input"
+        />
+      </div>
+
+      <!-- Clear Filters -->
+      <div class="flex items-end">
+        <button
+          (click)="clearFilters()"
+          class="btn btn-secondary w-full"
+        >
+          Clear Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="flex justify-center items-center py-12">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error) {
+    <div class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 p-4 rounded-lg mb-6">
+      {{ error }}
+    </div>
+  }
+
+  <!-- Teams Grid -->
+  @if (!loading && !error) {
+    @if (filteredTeams.length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+        @for (team of filteredTeams; track team.public_id) {
+          <a
+            [routerLink]="['/teams', team.public_id]"
+            class="card hover:shadow-lg transition-shadow cursor-pointer group"
+          >
+            <!-- Team Header with Gradient -->
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-t-lg -m-6 mb-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  @if (team.logo_url) {
+                    <img
+                      [src]="team.logo_url"
+                      [alt]="team.name"
+                      class="w-12 h-12 rounded-full bg-white object-cover"
+                    />
+                  } @else {
+                    <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-xl font-bold">
+                      {{ getTeamInitials(team.name) }}
+                    </div>
+                  }
+                  <div>
+                    <h3 class="font-bold text-lg group-hover:underline">{{ team.name }}</h3>
+                    <p class="text-sm text-white/80">{{ team.short_name }}</p>
+                  </div>
+                </div>
+                @if (team.country_code) {
+                  <span class="text-2xl">{{ getCountryFlag(team.country_code) }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- Team Details -->
+            <div class="space-y-2">
+              @if (team.country_code) {
+                <div class="text-sm text-gray-600 dark:text-gray-400">
+                  <span class="font-semibold">Country:</span> {{ team.country_code }}
+                </div>
+              }
+
+              @if (team.primary_color || team.secondary_color) {
+                <div class="text-sm text-gray-600 dark:text-gray-400">
+                  <span class="font-semibold">Colors:</span>
+                  <div class="flex gap-2 mt-1">
+                    @if (team.primary_color) {
+                      <div
+                        class="w-8 h-8 rounded border border-gray-300"
+                        [style.background-color]="team.primary_color"
+                        [title]="'Primary: ' + team.primary_color"
+                      ></div>
+                    }
+                    @if (team.secondary_color) {
+                      <div
+                        class="w-8 h-8 rounded border border-gray-300"
+                        [style.background-color]="team.secondary_color"
+                        [title]="'Secondary: ' + team.secondary_color"
+                      ></div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- View Details Arrow -->
+            <div class="mt-4 text-primary-600 dark:text-primary-400 group-hover:translate-x-2 transition-transform">
+              View Details →
+            </div>
+          </a>
+        }
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between">
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          Showing {{ Math.min(currentPage * pageSize, totalTeams) }} of {{ totalTeams }} teams
+        </div>
+        <div class="flex gap-2">
+          <button
+            (click)="previousPage()"
+            [disabled]="currentPage === 1"
+            class="btn btn-secondary"
+            [class.opacity-50]="currentPage === 1"
+            [class.cursor-not-allowed]="currentPage === 1"
+          >
+            ← Previous
+          </button>
+          <span class="px-4 py-2 text-gray-700 dark:text-gray-300">
+            Page {{ currentPage }} of {{ totalPages }}
+          </span>
+          <button
+            (click)="nextPage()"
+            [disabled]="currentPage >= totalPages"
+            class="btn btn-secondary"
+            [class.opacity-50]="currentPage >= totalPages"
+            [class.cursor-not-allowed]="currentPage >= totalPages"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+    } @else {
+      <!-- Empty State -->
+      <div class="card text-center py-12">
+        <div class="text-6xl mb-4">🏏</div>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          No teams found
+        </h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">
+          @if (searchTerm || countryFilter) {
+            Try adjusting your filters or clear them to see all teams.
+          } @else {
+            Get started by creating your first team.
+          }
+        </p>
+        @if (!searchTerm && !countryFilter) {
+          <a routerLink="/teams/create" class="btn btn-primary">
+            Create Team
+          </a>
+        }
+      </div>
+    }
+  }
+</div>

@@ -21,36 +21,34 @@ export interface Team extends TimestampMixin, PublicIdMixin {
   id: number;
   name: string;
   short_name: string;
-  country_code: string;
+  country_code?: string;
   logo_url?: string;
-  founded_year?: number;
-  home_ground?: string;
-  coach?: string;
-  captain?: string;
-  website_url?: string;
-  social_media?: Record<string, string>;
+  primary_color?: string;
+  secondary_color?: string;
 }
 
 export interface TeamCreate {
   name: string;
   short_name: string;
-  country_code: string;
+  country_code?: string;
   logo_url?: string;
-  founded_year?: number;
-  home_ground?: string;
-  coach?: string;
-  captain?: string;
-  website_url?: string;
-  social_media?: Record<string, string>;
+  primary_color?: string;
+  secondary_color?: string;
 }
 
-export interface TeamUpdate extends Partial<TeamCreate> {}
+export interface TeamUpdate {
+  name?: string;
+  short_name?: string;
+  country_code?: string;
+  logo_url?: string;
+  primary_color?: string;
+  secondary_color?: string;
+}
 
 export interface TeamSummary {
   public_id: string;
   name: string;
   short_name: string;
-  country_code: string;
   logo_url?: string;
 }
 
