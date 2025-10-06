@@ -156,35 +156,40 @@ export enum MatchType {
 export interface Tournament extends TimestampMixin, PublicIdMixin {
   id: number;
   name: string;
-  season: string;
-  match_type: MatchType;
+  short_name?: string;
+  season?: string;
+  match_type?: string;
   start_date?: string;
   end_date?: string;
-  description?: string;
-  prize_pool?: string;
-  rules?: Record<string, any>;
+  points_system?: Record<string, any>;
 }
 
 export interface TournamentCreate {
   name: string;
-  season: string;
-  match_type: MatchType;
+  short_name?: string;
+  season?: string;
+  match_type?: string;
   start_date?: string;
   end_date?: string;
-  description?: string;
-  prize_pool?: string;
-  rules?: Record<string, any>;
+  points_system?: Record<string, any>;
 }
 
-export interface TournamentUpdate extends Partial<TournamentCreate> {}
+export interface TournamentUpdate {
+  name?: string;
+  short_name?: string;
+  season?: string;
+  match_type?: string;
+  start_date?: string;
+  end_date?: string;
+  points_system?: Record<string, any>;
+}
 
 export interface TournamentSummary {
   public_id: string;
   name: string;
-  season: string;
-  match_type: MatchType;
-  start_date?: string;
-  end_date?: string;
+  short_name?: string;
+  season?: string;
+  match_type?: string;
 }
 
 // Match interfaces
