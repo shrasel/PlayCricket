@@ -15,17 +15,17 @@ import { TeamService } from '../../../core/services/team.service';
 export class TeamsListComponent implements OnInit {
   teams: Team[] = [];
   filteredTeams: Team[] = [];
+  paginatedTeams: Team[] = [];
   loading = false;
   error: string | null = null;
   
   // Filters
-  searchTerm = '';
-  countryFilter = '';
+  searchQuery = '';
+  selectedCountry = '';
   
   // Pagination
   currentPage = 1;
   pageSize = 12;
-  totalTeams = 0;
 
   constructor(private teamService: TeamService) {}
 
@@ -37,12 +37,9 @@ export class TeamsListComponent implements OnInit {
     this.loading = true;
     this.error = null;
     
-    const skip = (this.currentPage - 1) * this.pageSize;
-    
-    this.teamService.getAll({ skip, limit: this.pageSize }).subscribe({
+    this.teamService.getAll({ skip: 0, limit: 1000 }).subscribe({
       next: (response) => {
         this.teams = response.items;
-        this.totalTeams = response.total;
         this.applyFilters();
         this.loading = false;
       },
@@ -56,51 +53,83 @@ export class TeamsListComponent implements OnInit {
 
   applyFilters(): void {
     this.filteredTeams = this.teams.filter(team => {
-      const matchesSearch = !this.searchTerm || 
-        team.name.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-        team.short_name.toLowerCase().includes(this.searchTerm.toLowerCase());
+      const matchesSearch = !this.searchQuery || 
+        team.name.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+        team.short_name.toLowerCase().includes(this.searchQuery.toLowerCase());
       
-      const matchesCountry = !this.countryFilter || 
-        team.country_code?.toLowerCase() === this.countryFilter.toLowerCase();
+      const matchesCountry = !this.selectedCountry || 
+        team.country_code?.toLowerCase() === this.selectedCountry.toLowerCase();
       
       return matchesSearch && matchesCountry;
     });
-  }
-
-  onSearchChange(): void {
-    this.applyFilters();
-  }
-
-  onCountryFilterChange(): void {
-    this.applyFilters();
+    
+    this.currentPage = 1; // Reset to first page when filters change
+    this.updatePagination();
   }
 
   clearFilters(): void {
-    this.searchTerm = '';
-    this.countryFilter = '';
+    this.searchQuery = '';
+    this.selectedCountry = '';
     this.applyFilters();
   }
 
+  updatePagination(): void {
+    const start = (this.currentPage - 1) * this.pageSize;
+    const end = start + this.pageSize;
+    this.paginatedTeams = this.filteredTeams.slice(start, end);
+  }
+
   nextPage(): void {
-    if (this.currentPage * this.pageSize < this.totalTeams) {
+    if (this.currentPage < this.totalPages) {
       this.currentPage++;
-      this.loadTeams();
+      this.updatePagination();
     }
   }
 
   previousPage(): void {
     if (this.currentPage > 1) {
       this.currentPage--;
-      this.loadTeams();
+      this.updatePagination();
     }
   }
 
+  goToPage(page: number): void {
+    this.currentPage = page;
+    this.updatePagination();
+  }
+
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxPagesToShow = 5;
+    const totalPages = this.totalPages;
+    
+    if (totalPages <= maxPagesToShow) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      const start = Math.max(1, this.currentPage - 2);
+      const end = Math.min(totalPages, start + maxPagesToShow - 1);
+      
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+    }
+    
+    return pages;
+  }
+
   get totalPages(): number {
-    return Math.ceil(this.totalTeams / this.pageSize);
+    return Math.ceil(this.filteredTeams.length / this.pageSize);
   }
 
   get Math() {
     return Math;
+  }
+
+  onImageError(event: Event): void {
+    const img = event.target as HTMLImageElement;
+    img.src = '';
   }
 
   getTeamInitials(teamName: string): string {

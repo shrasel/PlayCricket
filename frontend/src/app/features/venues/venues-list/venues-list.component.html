@@ -1,180 +1,217 @@
-<div class="container mx-auto px-4 py-8">
-  <!-- Header -->
-  <div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Venues</h1>
-    <a routerLink="/venues/create" class="btn btn-primary">
-      ➕ Create Venue
-    </a>
-  </div>
-
-  <!-- Filters -->
-  <div class="card mb-6">
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <!-- Search -->
+<div class="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 py-8">
+  <div class="container mx-auto px-4 max-w-7xl">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
       <div>
-        <label class="form-label">Search</label>
-        <input
-          type="text"
-          [(ngModel)]="searchTerm"
-          (ngModelChange)="onSearchChange()"
-          placeholder="Search by name or city..."
-          class="form-input"
-        />
+        <h1 class="text-4xl font-bold text-gray-800 dark:text-white mb-2">Venues</h1>
+        <p class="text-gray-600 dark:text-gray-400">Manage cricket grounds and stadiums</p>
       </div>
+      <a routerLink="/venues/create" class="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-md">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Create Venue
+      </a>
+    </div>
 
-      <!-- Country Filter -->
-      <div>
-        <label class="form-label">Country Code</label>
-        <input
-          type="text"
-          [(ngModel)]="countryFilter"
-          (ngModelChange)="onCountryFilterChange()"
-          placeholder="e.g., IND, AUS"
-          maxlength="3"
-          class="form-input"
-        />
+    <!-- Search & Filters -->
+    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Search -->
+        <div class="md:col-span-2">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Search Venues</label>
+          <div class="relative">
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="onSearchChange()"
+              placeholder="Search by name or city..."
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+            />
+            <svg class="absolute left-3 top-2.5 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Country Filter -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Country Code</label>
+          <input
+            type="text"
+            [(ngModel)]="countryFilter"
+            (ngModelChange)="onCountryFilterChange()"
+            placeholder="e.g., IND, AUS"
+            maxlength="3"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+          />
+        </div>
       </div>
 
       <!-- Clear Filters -->
-      <div class="flex items-end">
-        <button
-          (click)="clearFilters()"
-          class="btn btn-secondary w-full"
-        >
-          Clear Filters
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Loading State -->
-  @if (loading) {
-    <div class="flex justify-center items-center py-12">
-      <div class="spinner"></div>
-    </div>
-  }
-
-  <!-- Error State -->
-  @if (error) {
-    <div class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 p-4 rounded-lg mb-6">
-      {{ error }}
-    </div>
-  }
-
-  <!-- Venues Grid -->
-  @if (!loading && !error) {
-    @if (filteredVenues.length > 0) {
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
-        @for (venue of filteredVenues; track venue.public_id) {
-          <a
-            [routerLink]="['/venues', venue.public_id]"
-            class="card hover:shadow-lg transition-shadow cursor-pointer group"
-          >
-            <!-- Venue Header with Gradient -->
-            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-t-lg -m-6 mb-4">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                  <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-xl font-bold">
-                    {{ getVenueInitials(venue.name) }}
-                  </div>
-                  <div class="flex-1">
-                    <h3 class="font-bold text-lg group-hover:underline">{{ venue.name }}</h3>
-                    @if (venue.city) {
-                      <p class="text-sm text-white/80">{{ venue.city }}</p>
-                    }
-                  </div>
-                </div>
-                @if (venue.country_code) {
-                  <span class="text-2xl">{{ getCountryFlag(venue.country_code) }}</span>
-                }
-              </div>
-            </div>
-
-            <!-- Venue Details -->
-            <div class="space-y-2">
-              @if (venue.city || venue.country_code) {
-                <div class="text-sm text-gray-600 dark:text-gray-400">
-                  <span class="font-semibold">Location:</span>
-                  @if (venue.city && venue.country_code) {
-                    {{ venue.city }}, {{ venue.country_code }}
-                  } @else if (venue.city) {
-                    {{ venue.city }}
-                  } @else if (venue.country_code) {
-                    {{ venue.country_code }}
-                  }
-                </div>
-              }
-
-              @if (venue.timezone_name) {
-                <div class="text-sm text-gray-600 dark:text-gray-400">
-                  <span class="font-semibold">Timezone:</span> {{ venue.timezone_name }}
-                </div>
-              }
-
-              @if (venue.ends_names) {
-                <div class="text-sm text-gray-600 dark:text-gray-400">
-                  <span class="font-semibold">Ends:</span> {{ venue.ends_names }}
-                </div>
-              }
-            </div>
-
-            <!-- View Details Arrow -->
-            <div class="mt-4 text-primary-600 dark:text-primary-400 group-hover:translate-x-2 transition-transform">
-              View Details →
-            </div>
-          </a>
-        }
-      </div>
-
-      <!-- Pagination -->
-      <div class="flex items-center justify-between">
-        <div class="text-sm text-gray-600 dark:text-gray-400">
-          Showing {{ Math.min(currentPage * pageSize, totalVenues) }} of {{ totalVenues }} venues
-        </div>
-        <div class="flex gap-2">
+      @if (searchTerm || countryFilter) {
+        <div class="mt-4 flex justify-end">
           <button
-            (click)="previousPage()"
-            [disabled]="currentPage === 1"
-            class="btn btn-secondary"
-            [class.opacity-50]="currentPage === 1"
-            [class.cursor-not-allowed]="currentPage === 1"
+            (click)="clearFilters()"
+            class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
           >
-            ← Previous
-          </button>
-          <span class="px-4 py-2 text-gray-700 dark:text-gray-300">
-            Page {{ currentPage }} of {{ totalPages }}
-          </span>
-          <button
-            (click)="nextPage()"
-            [disabled]="currentPage >= totalPages"
-            class="btn btn-secondary"
-            [class.opacity-50]="currentPage >= totalPages"
-            [class.cursor-not-allowed]="currentPage >= totalPages"
-          >
-            Next →
+            Clear Filters
           </button>
         </div>
-      </div>
-    } @else {
-      <!-- Empty State -->
-      <div class="card text-center py-12">
-        <div class="text-6xl mb-4">🏟️</div>
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
-          No venues found
-        </h3>
-        <p class="text-gray-600 dark:text-gray-400 mb-6">
-          @if (searchTerm || countryFilter) {
-            Try adjusting your filters or clear them to see all venues.
-          } @else {
-            Get started by adding your first venue.
-          }
-        </p>
-        @if (!searchTerm && !countryFilter) {
-          <a routerLink="/venues/create" class="btn btn-primary">
-            Create Venue
-          </a>
-        }
+      }
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-12 text-center">
+        <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <p class="mt-4 text-gray-600 dark:text-gray-400">Loading venues...</p>
       </div>
     }
-  }
+
+    <!-- Error State -->
+    @if (error) {
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mb-6">
+        <p class="text-red-800 dark:text-red-200 font-medium">{{ error }}</p>
+      </div>
+    }
+
+    <!-- Venues Grid -->
+    @if (!loading && !error) {
+      @if (filteredVenues.length > 0) {
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          @for (venue of filteredVenues; track venue.public_id) {
+            <a
+              [routerLink]="['/venues', venue.public_id]"
+              class="bg-white dark:bg-gray-800 rounded-xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden group"
+            >
+              <!-- Gradient Header -->
+              <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-xl font-bold backdrop-blur-sm">
+                      {{ getVenueInitials(venue.name) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <h3 class="font-bold text-lg group-hover:underline truncate">{{ venue.name }}</h3>
+                      @if (venue.city) {
+                        <p class="text-sm text-white/80 truncate">{{ venue.city }}</p>
+                      }
+                    </div>
+                  </div>
+                  @if (venue.country_code) {
+                    <span class="text-2xl flex-shrink-0">{{ getCountryFlag(venue.country_code) }}</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Venue Details -->
+              <div class="p-6 space-y-3">
+                @if (venue.city || venue.country_code) {
+                  <div class="flex items-start">
+                    <svg class="w-5 h-5 text-gray-400 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <span class="text-sm text-gray-600 dark:text-gray-400">
+                      @if (venue.city && venue.country_code) {
+                        {{ venue.city }}, {{ venue.country_code }}
+                      } @else if (venue.city) {
+                        {{ venue.city }}
+                      } @else if (venue.country_code) {
+                        {{ venue.country_code }}
+                      }
+                    </span>
+                  </div>
+                }
+
+                @if (venue.timezone_name) {
+                  <div class="flex items-start">
+                    <svg class="w-5 h-5 text-gray-400 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-sm text-gray-600 dark:text-gray-400 truncate">{{ venue.timezone_name }}</span>
+                  </div>
+                }
+
+                @if (venue.ends_names) {
+                  <div class="flex items-start">
+                    <svg class="w-5 h-5 text-gray-400 mr-2 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span class="text-sm text-gray-600 dark:text-gray-400 truncate">{{ venue.ends_names }}</span>
+                  </div>
+                }
+
+                <!-- View Details Arrow -->
+                <div class="pt-3 flex items-center text-indigo-600 dark:text-indigo-400 text-sm font-medium group-hover:translate-x-2 transition-transform">
+                  View Details
+                  <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </div>
+              </div>
+            </a>
+          }
+        </div>
+
+        <!-- Pagination -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-4">
+          <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+              Showing <span class="font-medium text-gray-900 dark:text-white">{{ ((currentPage - 1) * pageSize) + 1 }}</span> to 
+              <span class="font-medium text-gray-900 dark:text-white">{{ Math.min(currentPage * pageSize, totalVenues) }}</span> of 
+              <span class="font-medium text-gray-900 dark:text-white">{{ totalVenues }}</span> venues
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                (click)="previousPage()"
+                [disabled]="currentPage === 1"
+                class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                </svg>
+              </button>
+              <span class="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
+                Page <span class="font-medium">{{ currentPage }}</span> of <span class="font-medium">{{ totalPages }}</span>
+              </span>
+              <button
+                (click)="nextPage()"
+                [disabled]="currentPage >= totalPages"
+                class="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <!-- Empty State -->
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-md p-12 text-center">
+          <div class="text-6xl mb-4">🏟️</div>
+          <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            No venues found
+          </h3>
+          <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+            @if (searchTerm || countryFilter) {
+              Try adjusting your filters or clear them to see all venues.
+            } @else {
+              Get started by adding your first cricket ground or stadium.
+            }
+          </p>
+          @if (!searchTerm && !countryFilter) {
+            <a routerLink="/venues/create" class="inline-flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-md">
+              <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Create Venue
+            </a>
+          }
+        </div>
+      }
+    }
+  </div>
 </div>
