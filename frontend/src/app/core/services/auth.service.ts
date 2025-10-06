@@ -34,6 +34,7 @@ export interface User {
   is_email_verified: boolean;
   mfa_enabled: boolean;
   status: 'active' | 'locked' | 'pending';
+  last_login_at?: string;
   created_at: string;
 }
 
@@ -109,8 +110,8 @@ export class AuthService {
     private http: HttpClient,
     private router: Router
   ) {
-    // Try to restore session on service initialization
-    this.restoreSession();
+    // Session restoration is now handled by APP_INITIALIZER in app.config.ts
+    // to ensure HTTP client is fully ready
   }
 
   // ============================================================================
@@ -167,14 +168,24 @@ export class AuthService {
    * User login
    */
   login(credentials: LoginRequest): Observable<User> {
+    console.log('🔐 Login attempt for:', credentials.email);
     this.isLoadingSubject.next(true);
     
     return this.http.post<TokenResponse>(`${this.API_URL}/login`, credentials, {
       withCredentials: true // Send cookies for refresh token
     }).pipe(
-      tap(response => this.handleAuthResponse(response)),
+      tap(response => {
+        console.log('✅ Login successful! Response:', response);
+        console.log('  - Access token (first 30 chars):', response.access_token.substring(0, 30));
+        console.log('  - User:', response.user.email);
+        console.log('  - Expires in:', response.expires_in, 'seconds');
+        this.handleAuthResponse(response);
+      }),
       map(response => response.user),
-      catchError(error => this.handleAuthError(error)),
+      catchError(error => {
+        console.error('❌ Login failed:', error);
+        return this.handleAuthError(error);
+      }),
       tap(() => this.isLoadingSubject.next(false))
     );
   }
@@ -381,9 +392,19 @@ export class AuthService {
    * Get current user profile
    */
   getCurrentProfile(): Observable<User> {
+    console.log('🔍 getCurrentProfile called, token available:', !!this.accessToken);
+    console.log('🔑 Token value:', this.accessToken?.substring(0, 20) + '...');
+    
     return this.http.get<User>(`${this.API_URL}/me`).pipe(
-      tap(user => this.currentUserSubject.next(user)),
-      catchError(error => this.handleAuthError(error))
+      tap(user => {
+        console.log('✅ Profile fetched successfully:', user.email);
+        this.currentUserSubject.next(user);
+      }),
+      catchError(error => {
+        console.error('❌ Profile fetch failed:', error.status, error.message);
+        console.error('Error details:', error);
+        return this.handleAuthError(error);
+      })
     );
   }
 
@@ -428,22 +449,36 @@ export class AuthService {
   // Session Management (Internal)
   // ============================================================================
 
-  /**
+    /**
    * Restore session from refresh token
+   * Returns a Promise that resolves when session restore is complete
    */
-  private restoreSession(): void {
-    // Try to refresh token on app initialization
-    // The refresh token is in httpOnly cookie, so we just call the endpoint
-    this.http.post<TokenResponse>(`${this.API_URL}/refresh`, {}, {
-      withCredentials: true
-    }).subscribe({
-      next: (response) => {
-        this.handleAuthResponse(response);
-      },
-      error: () => {
-        // No valid session, that's okay
-        this.clearAuthData();
-      }
+  restoreSession(): Promise<void> {
+    return new Promise((resolve) => {
+      // Try to refresh token on app initialization
+      // The refresh token is in httpOnly cookie, so we just call the endpoint
+      console.log('🔄 Attempting to restore session from refresh token...');
+      
+      this.http.post<TokenResponse>(`${this.API_URL}/refresh`, {}, {
+        withCredentials: true
+      }).subscribe({
+        next: (response) => {
+          console.log('✅ Session restored successfully!', response.user.email);
+          console.log('🔑 New access token received (first 20 chars):', response.access_token.substring(0, 20));
+          console.log('⏰ Token expires in:', response.expires_in, 'seconds');
+          console.log('👤 User data:', response.user);
+          
+          this.handleAuthResponse(response);
+          resolve(); // Session restored successfully
+        },
+        error: (error) => {
+          console.log('ℹ️ No valid session to restore:', error.status, error.statusText);
+          console.log('Error details:', error);
+          // No valid session, that's okay
+          this.clearAuthData();
+          resolve(); // Resolve anyway - no session is not an error
+        }
+      });
     });
   }
 
@@ -451,12 +486,22 @@ export class AuthService {
    * Handle successful authentication response
    */
   private handleAuthResponse(response: TokenResponse): void {
+    console.log('📦 handleAuthResponse called');
+    console.log('  - Storing access token (first 20 chars):', response.access_token.substring(0, 20));
+    console.log('  - Token will expire in:', response.expires_in, 'seconds');
+    
     // Store access token in memory
     this.accessToken = response.access_token;
+    
+    console.log('  - Token stored. Verifying storage...');
+    console.log('  - accessToken is now:', this.accessToken ? 'SET (' + this.accessToken.substring(0, 20) + '...)' : 'NULL');
     
     // Update user state
     this.currentUserSubject.next(response.user);
     this.isAuthenticatedSubject.next(true);
+    
+    console.log('  - User state updated:', response.user.email);
+    console.log('  - isAuthenticated set to: true');
     
     // Setup automatic token refresh before expiry
     this.scheduleTokenRefresh(response.expires_in);

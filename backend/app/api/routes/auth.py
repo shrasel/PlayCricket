@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.core.config import settings
 from app.api.dependencies.auth import (
     get_current_user, get_current_active_user, get_optional_user
 )
@@ -130,7 +131,7 @@ async def login(
             key="refresh_token",
             value=refresh_token,
             httponly=True,
-            secure=True,  # HTTPS only in production
+            secure=not settings.DEBUG,  # HTTPS only in production, HTTP allowed in dev
             samesite="lax",
             max_age=30 * 24 * 60 * 60  # 30 days
         )
@@ -211,7 +212,7 @@ async def refresh_token(
             key="refresh_token",
             value=new_refresh_token,
             httponly=True,
-            secure=True,
+            secure=not settings.DEBUG,  # HTTPS only in production, HTTP allowed in dev
             samesite="lax",
             max_age=30 * 24 * 60 * 60
         )
@@ -530,7 +531,7 @@ async def change_password(
 async def logout(
     response: Response,
     request: Request,
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_optional_user),
     refresh_token: Optional[str] = Header(None, alias="X-Refresh-Token"),
     db: AsyncSession = Depends(get_db)
 ):
@@ -539,21 +540,33 @@ async def logout(
     
     Revokes refresh token and clears cookie.
     Access token remains valid until expiry (15 minutes).
+    Works even if access token is expired or invalid.
     """
     # Try to get refresh token from cookie if not in header
     if not refresh_token:
         refresh_token = request.cookies.get("refresh_token")
     
-    auth_service = AuthService(db)
+    # If we have a valid user and refresh token, revoke it
+    if current_user and refresh_token:
+        auth_service = AuthService(db)
+        try:
+            await auth_service.logout(
+                current_user.id,
+                refresh_token,
+                ip_address=get_client_ip(request)
+            )
+        except Exception as e:
+            # Log error but don't fail logout
+            print(f"⚠️ Error revoking refresh token: {e}")
     
-    await auth_service.logout(
-        current_user.id,
-        refresh_token,
-        ip_address=get_client_ip(request)
+    # Always clear refresh token cookie (even if revocation failed)
+    response.delete_cookie(
+        key="refresh_token",
+        path="/",
+        domain="localhost" if settings.DEBUG else None,
+        httponly=True,
+        samesite="lax"
     )
-    
-    # Clear refresh token cookie
-    response.delete_cookie("refresh_token")
     
     return {"message": "Logged out successfully"}
 

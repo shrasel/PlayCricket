@@ -35,14 +35,22 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
+    console.log('🌐 HTTP Request:', request.method, request.url);
+    
     // Add auth token to request if available
     const modifiedRequest = this.addToken(request);
     
+    console.log('  - Has Authorization header:', modifiedRequest.headers.has('Authorization'));
+    
     return next.handle(modifiedRequest).pipe(
       catchError(error => {
-        if (error instanceof HttpErrorResponse && error.status === 401) {
-          // Handle 401 Unauthorized errors
-          return this.handle401Error(modifiedRequest, next);
+        if (error instanceof HttpErrorResponse) {
+          console.error('❌ HTTP Error:', error.status, error.statusText, 'for', request.url);
+          
+          if (error.status === 401) {
+            // Handle 401 Unauthorized errors
+            return this.handle401Error(modifiedRequest, next);
+          }
         }
         
         return throwError(() => error);
@@ -56,15 +64,25 @@ export class AuthInterceptor implements HttpInterceptor {
   private addToken(request: HttpRequest<unknown>): HttpRequest<unknown> {
     const token = this.authService.token;
     
+    console.log('🔒 Auth Interceptor - URL:', request.url);
+    console.log('🔑 Auth Interceptor - Token available:', !!token);
+    
     if (token) {
-      return request.clone({
+      console.log('✅ Adding Authorization header to request');
+      console.log('   Token (first 30 chars):', token.substring(0, 30) + '...');
+      
+      const cloned = request.clone({
         setHeaders: {
           Authorization: `Bearer ${token}`
         },
         withCredentials: true // Include cookies for refresh token
       });
+      
+      console.log('   Authorization header set:', cloned.headers.get('Authorization')?.substring(0, 40) + '...');
+      return cloned;
     }
     
+    console.log('⚠️ No token available, sending request without Authorization header');
     return request.clone({
       withCredentials: true
     });
