@@ -79,40 +79,36 @@ export enum PlayerRole {
 
 export interface Player extends TimestampMixin, PublicIdMixin {
   id: number;
-  first_name: string;
-  last_name: string;
   full_name: string;
-  date_of_birth?: string;
-  country_code: string;
-  batting_style?: BattingStyle;
-  bowling_style?: BowlingStyle;
-  role: PlayerRole;
-  photo_url?: string;
-  jersey_number?: number;
-  bio?: string;
+  known_as?: string;
+  dob?: string;
+  batting_style?: string;
+  bowling_style?: string;
+  age?: number;
 }
 
 export interface PlayerCreate {
-  first_name: string;
-  last_name: string;
-  date_of_birth?: string;
-  country_code: string;
-  batting_style?: BattingStyle;
-  bowling_style?: BowlingStyle;
-  role: PlayerRole;
-  photo_url?: string;
-  jersey_number?: number;
-  bio?: string;
+  full_name: string;
+  known_as?: string;
+  dob?: string;
+  batting_style?: string;
+  bowling_style?: string;
 }
 
-export interface PlayerUpdate extends Partial<PlayerCreate> {}
+export interface PlayerUpdate {
+  full_name?: string;
+  known_as?: string;
+  dob?: string;
+  batting_style?: string;
+  bowling_style?: string;
+}
 
 export interface PlayerSummary {
   public_id: string;
   full_name: string;
-  country_code: string;
-  role: PlayerRole;
-  photo_url?: string;
+  known_as?: string;
+  batting_style?: string;
+  bowling_style?: string;
 }
 
 // Venue interfaces
