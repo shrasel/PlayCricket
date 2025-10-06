@@ -96,10 +96,11 @@ export const routes: Routes = [
     loadChildren: () => import('./features/matches/matches.routes').then(m => m.MATCHES_ROUTES),
     canActivate: [AuthGuard]
   },
-  // {
-  //   path: 'statistics',
-  //   loadChildren: () => import('./features/statistics/statistics.routes').then(m => m.STATISTICS_ROUTES)
-  // },
+  {
+    path: 'statistics',
+    loadChildren: () => import('./features/statistics/statistics.routes').then(m => m.STATISTICS_ROUTES),
+    canActivate: [AuthGuard]
+  },
 
   // 404 Not Found
   {

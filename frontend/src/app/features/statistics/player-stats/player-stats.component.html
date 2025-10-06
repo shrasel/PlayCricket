@@ -1,0 +1,294 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header with Back Button -->
+    <div class="mb-6">
+      <a routerLink="/statistics" class="inline-flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 mb-4">
+        <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        Back to Statistics
+      </a>
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-white">Player Statistics</h1>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading && !player) {
+      <div class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error && !loading) {
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div class="flex items-center">
+          <svg class="h-5 w-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="text-red-800 dark:text-red-200">{{ error }}</p>
+        </div>
+      </div>
+    }
+
+    <!-- Player Profile & Stats -->
+    @if (player && !loading) {
+      <!-- Player Header Card -->
+      <div class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-lg shadow-lg p-8 mb-6 text-white">
+        <div class="flex flex-col md:flex-row items-center md:items-start gap-6">
+          <!-- Avatar -->
+          <div class="h-32 w-32 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center ring-4 ring-white/30">
+            <span class="text-5xl font-bold">{{ getInitials(player.full_name) }}</span>
+          </div>
+          
+          <!-- Player Info -->
+          <div class="flex-1 text-center md:text-left">
+            <h2 class="text-4xl font-bold mb-2">{{ player.full_name }}</h2>
+            @if (player.known_as) {
+              <p class="text-xl text-indigo-100 mb-4">"{{ player.known_as }}"</p>
+            }
+            <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+              <div class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                <p class="text-sm text-indigo-100">Role</p>
+                <p class="font-semibold">{{ getRoleDisplay() }}</p>
+              </div>
+              @if (getPlayerAge() > 0) {
+                <div class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                  <p class="text-sm text-indigo-100">Age</p>
+                  <p class="font-semibold">{{ getPlayerAge() }} years</p>
+                </div>
+              }
+              @if (player.batting_style) {
+                <div class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                  <p class="text-sm text-indigo-100">Batting</p>
+                  <p class="font-semibold">{{ player.batting_style }}</p>
+                </div>
+              }
+              @if (player.bowling_style) {
+                <div class="bg-white/20 backdrop-blur-sm rounded-lg px-4 py-2">
+                  <p class="text-sm text-indigo-100">Bowling</p>
+                  <p class="font-semibold">{{ player.bowling_style }}</p>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Career Summary Cards -->
+      <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 mb-6">
+        <!-- Matches -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Matches</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ totalMatches }}</p>
+        </div>
+        
+        <!-- Innings -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Innings</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ totalInnings }}</p>
+        </div>
+        
+        <!-- Runs -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Runs</p>
+          <p class="text-2xl font-bold text-green-600 dark:text-green-400">{{ totalRuns }}</p>
+        </div>
+        
+        <!-- Batting Average -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Avg</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ battingAverage.toFixed(2) }}</p>
+        </div>
+        
+        <!-- Strike Rate -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">SR</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ battingStrikeRate.toFixed(2) }}</p>
+        </div>
+        
+        <!-- Wickets -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Wickets</p>
+          <p class="text-2xl font-bold text-red-600 dark:text-red-400">{{ totalWickets }}</p>
+        </div>
+        
+        <!-- Bowling Average -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Bowl Avg</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ bowlingAverage.toFixed(2) }}</p>
+        </div>
+        
+        <!-- Economy -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-4">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Econ</p>
+          <p class="text-2xl font-bold text-gray-900 dark:text-white">{{ bowlingEconomy.toFixed(2) }}</p>
+        </div>
+      </div>
+
+      <!-- Format-wise Statistics -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm mb-6">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Statistics by Format</h2>
+        </div>
+        <div class="overflow-x-auto">
+          @if (formatStats.length > 0) {
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+              <thead class="bg-gray-50 dark:bg-gray-900">
+                <tr>
+                  <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Format
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    M
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Runs
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Avg
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    SR
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Wkts
+                  </th>
+                  <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    Econ
+                  </th>
+                </tr>
+              </thead>
+              <tbody class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                @for (stat of formatStats; track stat.format) {
+                  <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                      {{ stat.format }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                      {{ stat.matches }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-green-600 dark:text-green-400">
+                      {{ stat.runs }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                      {{ stat.average.toFixed(2) }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                      {{ stat.strikeRate.toFixed(2) }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-red-600 dark:text-red-400">
+                      {{ stat.wickets }}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500 dark:text-gray-400">
+                      {{ stat.economy.toFixed(2) }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          } @else {
+            <p class="px-6 py-8 text-center text-gray-500 dark:text-gray-400">No format statistics available</p>
+          }
+        </div>
+      </div>
+
+      <!-- Recent Matches & Performance Trends -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Recent Matches -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+          <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Recent Matches</h2>
+          </div>
+          <div class="px-6 py-4">
+            @if (recentMatches.length > 0) {
+              <div class="space-y-3">
+                @for (match of recentMatches; track match.matchId) {
+                  <div class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                    <div>
+                      <p class="text-sm font-medium text-gray-900 dark:text-white">vs {{ match.opponent }}</p>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">{{ match.date }}</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="text-sm font-semibold text-gray-900 dark:text-white">
+                        {{ match.runs }} runs, {{ match.wickets }} wkts
+                      </p>
+                      <p class="text-xs" 
+                         [class.text-green-600]="match.result === 'Won'"
+                         [class.text-red-600]="match.result === 'Lost'">
+                        {{ match.result }}
+                      </p>
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="text-center text-gray-500 dark:text-gray-400 py-8">No recent matches</p>
+            }
+          </div>
+        </div>
+
+        <!-- Performance Trend - Runs -->
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+          <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Runs Trend</h2>
+          </div>
+          <div class="px-6 py-4">
+            @if (runsTrend.length > 0) {
+              <div class="space-y-3">
+                @for (data of runsTrend; track data.label) {
+                  <div class="flex items-center">
+                    <span class="text-xs font-medium text-gray-500 dark:text-gray-400 w-16">{{ data.label }}</span>
+                    <div class="flex-1 mx-2">
+                      <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                        <div 
+                          class="bg-gradient-to-r from-green-600 to-green-500 h-2 rounded-full transition-all duration-500"
+                          [style.width.%]="getChartHeight(data.value, getMaxValue(runsTrend))">
+                        </div>
+                      </div>
+                    </div>
+                    <span class="text-xs font-semibold text-gray-900 dark:text-white w-12 text-right">
+                      {{ data.value }}
+                    </span>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="text-center text-gray-500 dark:text-gray-400 py-8">No trend data available</p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Wickets Trend -->
+      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Wickets Trend</h2>
+        </div>
+        <div class="px-6 py-4">
+          @if (wicketsTrend.length > 0) {
+            <div class="space-y-3">
+              @for (data of wicketsTrend; track data.label) {
+                <div class="flex items-center">
+                  <span class="text-xs font-medium text-gray-500 dark:text-gray-400 w-16">{{ data.label }}</span>
+                  <div class="flex-1 mx-2">
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        class="bg-gradient-to-r from-red-600 to-red-500 h-2 rounded-full transition-all duration-500"
+                        [style.width.%]="getChartHeight(data.value, getMaxValue(wicketsTrend))">
+                      </div>
+                    </div>
+                  </div>
+                  <span class="text-xs font-semibold text-gray-900 dark:text-white w-12 text-right">
+                    {{ data.value }}
+                  </span>
+                </div>
+              }
+            </div>
+          } @else {
+            <p class="text-center text-gray-500 dark:text-gray-400 py-8">No wicket trend data available</p>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>
