@@ -66,13 +66,13 @@ export class MatchFormComponent implements OnInit {
     return this.fb.group({
       venue_id: ['', Validators.required],
       tournament_id: [''],
-      match_number: [''],
       match_type: [MatchType.T20, Validators.required],
       status: [MatchStatus.SCHEDULED],
-      scheduled_start: [''],
-      overs_per_innings: [20, [Validators.min(1)]],
-      is_day_night: [false],
-      is_neutral_venue: [false],
+      start_time: [''],
+      local_tz: [''],
+      overs_limit: [20, [Validators.min(1)]],
+      balls_per_over: [6, [Validators.min(1), Validators.max(10)]],
+      notes: [''],
       team1_id: ['', Validators.required],
       team1_is_home: [true],
       team2_id: ['', Validators.required],
@@ -135,13 +135,13 @@ export class MatchFormComponent implements OnInit {
     this.matchForm.patchValue({
       venue_id: match.venue_id,
       tournament_id: match.tournament_id || '',
-      match_number: match.match_number || '',
       match_type: match.match_type,
       status: match.status,
-      scheduled_start: match.scheduled_start ? this.formatDateForInput(match.scheduled_start) : '',
-      overs_per_innings: match.overs_per_innings || 20,
-      is_day_night: match.is_day_night,
-      is_neutral_venue: match.is_neutral_venue
+      start_time: match.start_time ? this.formatDateForInput(match.start_time) : '',
+      local_tz: match.local_tz || '',
+      overs_limit: match.overs_limit || 20,
+      balls_per_over: match.balls_per_over || 6,
+      notes: match.notes || ''
     });
 
     // Set teams if available
@@ -169,19 +169,19 @@ export class MatchFormComponent implements OnInit {
     // Set default overs based on match type
     switch (matchType) {
       case MatchType.T20:
-        this.matchForm.patchValue({ overs_per_innings: 20 });
+        this.matchForm.patchValue({ overs_limit: 20 });
         break;
       case MatchType.T10:
-        this.matchForm.patchValue({ overs_per_innings: 10 });
+        this.matchForm.patchValue({ overs_limit: 10 });
         break;
       case MatchType.ODI:
-        this.matchForm.patchValue({ overs_per_innings: 50 });
+        this.matchForm.patchValue({ overs_limit: 50 });
         break;
       case MatchType.THE_HUNDRED:
-        this.matchForm.patchValue({ overs_per_innings: 20 });
+        this.matchForm.patchValue({ overs_limit: 20 });
         break;
       case MatchType.TEST:
-        this.matchForm.patchValue({ overs_per_innings: null });
+        this.matchForm.patchValue({ overs_limit: null });
         break;
     }
   }
@@ -211,13 +211,13 @@ export class MatchFormComponent implements OnInit {
     const matchData: MatchCreate = {
       venue_id: formValue.venue_id,
       tournament_id: formValue.tournament_id || undefined,
-      match_number: formValue.match_number || undefined,
       match_type: formValue.match_type,
       status: formValue.status,
-      scheduled_start: formValue.scheduled_start ? new Date(formValue.scheduled_start).toISOString() : undefined,
-      overs_per_innings: formValue.overs_per_innings || undefined,
-      is_day_night: formValue.is_day_night || false,
-      is_neutral_venue: formValue.is_neutral_venue || false,
+      start_time: formValue.start_time ? new Date(formValue.start_time).toISOString() : undefined,
+      local_tz: formValue.local_tz || undefined,
+      overs_limit: formValue.overs_limit ? parseInt(formValue.overs_limit, 10) : undefined,
+      balls_per_over: formValue.balls_per_over ? parseInt(formValue.balls_per_over, 10) : 6,
+      notes: formValue.notes || undefined,
       teams: [
         { team_id: formValue.team1_id, is_home: formValue.team1_is_home },
         { team_id: formValue.team2_id, is_home: formValue.team2_is_home }
@@ -252,13 +252,13 @@ export class MatchFormComponent implements OnInit {
     const updateData: MatchUpdate = {
       venue_id: formValue.venue_id,
       tournament_id: formValue.tournament_id || undefined,
-      match_number: formValue.match_number || undefined,
       match_type: formValue.match_type,
       status: formValue.status,
-      scheduled_start: formValue.scheduled_start ? new Date(formValue.scheduled_start).toISOString() : undefined,
-      overs_per_innings: formValue.overs_per_innings || undefined,
-      is_day_night: formValue.is_day_night || false,
-      is_neutral_venue: formValue.is_neutral_venue || false
+      start_time: formValue.start_time ? new Date(formValue.start_time).toISOString() : undefined,
+      local_tz: formValue.local_tz || undefined,
+      overs_limit: formValue.overs_limit ? parseInt(formValue.overs_limit, 10) : undefined,
+      balls_per_over: formValue.balls_per_over ? parseInt(formValue.balls_per_over, 10) : 6,
+      notes: formValue.notes || undefined
     };
 
     this.matchService.update(this.matchId!, updateData).subscribe({

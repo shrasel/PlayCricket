@@ -1,0 +1,52 @@
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out;
+}
+
+// Custom scrollbar
+.overflow-y-auto {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(156, 163, 175) transparent;
+  
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background-color: rgb(156, 163, 175);
+    border-radius: 3px;
+    
+    &:hover {
+      background-color: rgb(107, 114, 128);
+    }
+  }
+}
+
+// Dark mode scrollbar
+@media (prefers-color-scheme: dark) {
+  .overflow-y-auto {
+    scrollbar-color: rgb(75, 85, 99) transparent;
+    
+    &::-webkit-scrollbar-thumb {
+      background-color: rgb(75, 85, 99);
+      
+      &:hover {
+        background-color: rgb(107, 114, 128);
+      }
+    }
+  }
+}

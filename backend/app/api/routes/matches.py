@@ -67,8 +67,8 @@ async def create_match(
         team_ids.append(team.id)
         is_home_flags.append(team_data.is_home)
     
-    # Prepare match data
-    match_dict = match_data.model_dump(exclude={"teams", "toss"})
+    # Prepare match data - exclude venue_id and tournament_id as we'll use internal IDs
+    match_dict = match_data.model_dump(exclude={"teams", "toss", "venue_id", "tournament_id"})
     match_dict["venue_id"] = venue.id
     match_dict["tournament_id"] = tournament_id
     
@@ -183,7 +183,7 @@ async def list_matches(
             db,
             skip=pagination.skip,
             limit=pagination.limit,
-            order_by="scheduled_start",
+            order_by="start_time",
             order_desc=True
         )
         total = await match_service.count(db)
@@ -278,15 +278,6 @@ async def update_match(
                 detail=f"Tournament with ID '{update_data['tournament_id']}' not found"
             )
         update_data["tournament_id"] = tournament.id
-    
-    if "winning_team_id" in update_data and update_data["winning_team_id"]:
-        winning_team = await team_service.get_by_public_id(db, update_data["winning_team_id"])
-        if not winning_team:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Winning team with ID '{update_data['winning_team_id']}' not found"
-            )
-        update_data["winning_team_id"] = winning_team.id
     
     match = await match_service.update(db, obj=match, update_data=update_data)
     await db.commit()

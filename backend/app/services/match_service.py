@@ -16,6 +16,44 @@ class MatchService(BaseService[Match]):
         """Initialize MatchService."""
         super().__init__(Match)
     
+    async def get_multi(
+        self,
+        db: AsyncSession,
+        *,
+        skip: int = 0,
+        limit: int = 100,
+        filters: dict = None,
+        order_by: str = None,
+        order_desc: bool = False
+    ) -> List[Match]:
+        """Get multiple matches with relationships loaded."""
+        query = select(Match).options(
+            selectinload(Match.venue),
+            selectinload(Match.tournament),
+            selectinload(Match.teams).selectinload(MatchTeam.team)
+        )
+        
+        # Apply filters
+        if filters:
+            for key, value in filters.items():
+                if hasattr(Match, key):
+                    if isinstance(value, list):
+                        query = query.where(getattr(Match, key).in_(value))
+                    else:
+                        query = query.where(getattr(Match, key) == value)
+        
+        # Apply ordering
+        if order_by and hasattr(Match, order_by):
+            order_column = getattr(Match, order_by)
+            if order_desc:
+                query = query.order_by(order_column.desc())
+            else:
+                query = query.order_by(order_column)
+        
+        query = query.offset(skip).limit(limit)
+        result = await db.execute(query)
+        return list(result.scalars().all())
+    
     async def get_match_with_full_details(
         self,
         db: AsyncSession,
@@ -25,9 +63,8 @@ class MatchService(BaseService[Match]):
         query = select(Match).where(Match.public_id == public_id).options(
             selectinload(Match.venue),
             selectinload(Match.tournament),
-            selectinload(Match.match_teams).selectinload(MatchTeam.team),
-            selectinload(Match.match_toss).selectinload(MatchToss.toss_winner),
-            selectinload(Match.winning_team),
+            selectinload(Match.teams).selectinload(MatchTeam.team),
+            selectinload(Match.toss).selectinload(MatchToss.team),
             selectinload(Match.innings)
         )
         result = await db.execute(query)
@@ -47,7 +84,7 @@ class MatchService(BaseService[Match]):
             skip=skip,
             limit=limit,
             filters={"status": status},
-            order_by="scheduled_start",
+            order_by="start_time",
             order_desc=True
         )
     
@@ -75,7 +112,7 @@ class MatchService(BaseService[Match]):
             skip=skip,
             limit=limit,
             filters={"tournament_id": tournament_id},
-            order_by="scheduled_start"
+            order_by="start_time"
         )
     
     async def get_by_venue(
@@ -92,7 +129,7 @@ class MatchService(BaseService[Match]):
             skip=skip,
             limit=limit,
             filters={"venue_id": venue_id},
-            order_by="scheduled_start",
+            order_by="start_time",
             order_desc=True
         )
     
@@ -107,7 +144,7 @@ class MatchService(BaseService[Match]):
         """Get matches involving a specific team."""
         query = select(Match).join(MatchTeam).where(
             MatchTeam.team_id == team_id
-        ).order_by(Match.scheduled_start.desc()).offset(skip).limit(limit)
+        ).order_by(Match.start_time.desc()).offset(skip).limit(limit)
         
         result = await db.execute(query)
         return list(result.scalars().all())
@@ -124,10 +161,10 @@ class MatchService(BaseService[Match]):
         """Get matches between two dates."""
         query = select(Match).where(
             and_(
-                Match.scheduled_start >= start_date,
-                Match.scheduled_start <= end_date
+                Match.start_time >= start_date,
+                Match.start_time <= end_date
             )
-        ).order_by(Match.scheduled_start).offset(skip).limit(limit)
+        ).order_by(Match.start_time).offset(skip).limit(limit)
         
         result = await db.execute(query)
         return list(result.scalars().all())

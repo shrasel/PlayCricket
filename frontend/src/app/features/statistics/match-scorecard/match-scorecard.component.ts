@@ -356,11 +356,7 @@ export class MatchScorecardComponent implements OnInit {
   getMatchResult(): string {
     if (!this.match) return '';
     
-    if (this.match.result_type && this.match.winning_team_id) {
-      const winningTeam = this.getTeamName(this.match.winning_team_id);
-      return `${winningTeam} won by ${this.match.result_margin || 'a margin'}`;
-    }
-    
+    if (this.match.status === 'COMPLETED') return 'Match completed';
     if (this.match.status === 'LIVE') return 'Match in progress';
     if (this.match.status === 'SCHEDULED') return 'Match scheduled';
     

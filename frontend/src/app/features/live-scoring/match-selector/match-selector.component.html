@@ -1,0 +1,190 @@
+<div class="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Live Scoring</h1>
+      <p class="text-gray-600 dark:text-gray-400">Select a match to start scoring</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- Status Filter -->
+        <div>
+          <label for="status-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Match Status
+          </label>
+          <select
+            id="status-filter"
+            [(ngModel)]="selectedStatus"
+            (change)="onStatusChange()"
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+            <option value="ALL">All Matches</option>
+            <option value="LIVE">Live</option>
+            <option value="SCHEDULED">Scheduled</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="ABANDONED">Abandoned</option>
+            <option value="CANCELLED">Cancelled</option>
+          </select>
+        </div>
+
+        <!-- Search -->
+        <div>
+          <label for="search" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Search
+          </label>
+          <input
+            type="text"
+            id="search"
+            [(ngModel)]="searchTerm"
+            (input)="onSearchChange()"
+            placeholder="Search by team or venue..."
+            class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="flex justify-center items-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+    }
+
+    <!-- Error State -->
+    @if (error && !loading) {
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div class="flex items-center">
+          <svg class="h-5 w-5 text-red-400 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="text-red-800 dark:text-red-200">{{ error }}</p>
+        </div>
+      </div>
+    }
+
+    <!-- Matches List -->
+    @if (!loading && !error) {
+      @if (filteredMatches.length > 0) {
+        <div class="grid grid-cols-1 gap-4">
+          @for (match of filteredMatches; track match.id) {
+            <div 
+              (click)="canScore(match) ? selectMatch(match) : null"
+              [class.cursor-pointer]="canScore(match)"
+              [class.hover:shadow-lg]="canScore(match)"
+              [class.cursor-not-allowed]="!canScore(match)"
+              [class.opacity-60]="!canScore(match)"
+              class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 transition-all duration-200">
+              
+              <!-- Match Header -->
+              <div class="flex items-center justify-between mb-4">
+                <div class="flex items-center space-x-3">
+                  <!-- Status Badge -->
+                  <span [class]="getStatusBadgeClass(match.status)" class="px-3 py-1 rounded-full text-xs font-semibold">
+                    {{ match.status }}
+                  </span>
+                  
+                  <!-- Match Type -->
+                  <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    {{ match.match_type }}
+                  </span>
+                </div>
+
+                @if (canScore(match)) {
+                  <button class="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                    <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Start Scoring
+                  </button>
+                }
+              </div>
+
+              <!-- Teams -->
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <!-- Team 1 -->
+                <div class="flex items-center space-x-3">
+                  <div class="h-12 w-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center">
+                    <span class="text-white font-bold text-lg">{{ getTeamName(match, 0).substring(0, 2).toUpperCase() }}</span>
+                  </div>
+                  <div class="flex-1">
+                    <p class="font-semibold text-gray-900 dark:text-white">{{ getTeamName(match, 0) }}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Team 1</p>
+                  </div>
+                </div>
+
+                <!-- VS -->
+                <div class="flex items-center justify-center">
+                  <span class="text-2xl font-bold text-gray-400 dark:text-gray-600">VS</span>
+                </div>
+
+                <!-- Team 2 -->
+                <div class="flex items-center space-x-3">
+                  <div class="h-12 w-12 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center">
+                    <span class="text-white font-bold text-lg">{{ getTeamName(match, 1).substring(0, 2).toUpperCase() }}</span>
+                  </div>
+                  <div class="flex-1">
+                    <p class="font-semibold text-gray-900 dark:text-white">{{ getTeamName(match, 1) }}</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Team 2</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Match Details -->
+              <div class="flex flex-wrap gap-4 text-sm text-gray-600 dark:text-gray-400">
+                <div class="flex items-center">
+                  <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                  {{ match.venue?.name || 'Venue TBD' }}
+                </div>
+
+                <div class="flex items-center">
+                  <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                  {{ formatDate(match.start_time) }}
+                </div>
+
+                @if (match.tournament?.name) {
+                  <div class="flex items-center">
+                    <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    </svg>
+                    {{ match.tournament?.name }}
+                  </div>
+                }
+
+                @if (match.overs_limit) {
+                  <div class="flex items-center">
+                    <svg class="h-4 w-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                    {{ match.overs_limit }} Overs
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-12 text-center">
+          <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+          <h3 class="mt-2 text-lg font-medium text-gray-900 dark:text-white">No matches found</h3>
+          <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Try adjusting your filters or create a new match.</p>
+          <div class="mt-6">
+            <a routerLink="/matches/new" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+              <svg class="-ml-1 mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              Create New Match
+            </a>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</div>

@@ -88,9 +88,6 @@
           <div class="flex justify-between items-center">
             <div>
               <span class="text-white text-sm font-medium opacity-90">{{ getMatchTypeLabel(match.match_type) }}</span>
-              <span *ngIf="match.match_number" class="text-white text-sm font-medium opacity-90 ml-2">
-                - Match {{ match.match_number }}
-              </span>
             </div>
             <span [ngClass]="getStatusBadgeClass(match.status)">
               {{ match.status }}
@@ -113,7 +110,7 @@
               <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
               </svg>
-              <span>{{ formatDate(match.scheduled_start) }}</span>
+              <span>{{ formatDate(match.start_time) }}</span>
             </div>
 
             <div *ngIf="match.venue" class="flex items-center">
@@ -131,11 +128,11 @@
               <span>{{ match.tournament.name }}</span>
             </div>
 
-            <div *ngIf="match.overs_per_innings" class="flex items-center">
+            <div *ngIf="match.overs_limit" class="flex items-center">
               <svg class="w-5 h-5 mr-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
-              <span>{{ match.overs_per_innings }} overs per innings</span>
+              <span>{{ match.overs_limit }} overs per innings</span>
             </div>
           </div>
         </div>

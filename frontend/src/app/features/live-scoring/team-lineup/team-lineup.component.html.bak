@@ -1,0 +1,432 @@
+<div class="max-w-7xl mx-auto">
+  <!-- Header with Progress -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">Team Lineup Selection</h2>
+        <p class="text-gray-600 dark:text-gray-400">Select 11 players for each team and set batting order</p>
+      </div>
+      <div class="text-right">
+        <div class="text-sm text-gray-600 dark:text-gray-400 mb-1">Progress</div>
+        <div class="flex items-center space-x-2">
+          <span class="text-2xl font-bold" [class.text-green-600]="isTeamValid(0)">
+            {{ team1SelectedPlayers.length }}/11
+          </span>
+          <span class="text-gray-400">•</span>
+          <span class="text-2xl font-bold" [class.text-green-600]="isTeamValid(1)">
+            {{ team2SelectedPlayers.length }}/11
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+    <div class="border-b border-gray-200 dark:border-gray-700">
+      <nav class="flex -mb-px">
+        <button
+          type="button"
+          (click)="activeTab = 'team1'"
+          [class.border-indigo-600]="activeTab === 'team1'"
+          [class.text-indigo-600]="activeTab === 'team1'"
+          [class.border-transparent]="activeTab !== 'team1'"
+          [class.text-gray-500]="activeTab !== 'team1'"
+          class="flex-1 py-4 px-6 text-center border-b-2 font-medium text-sm hover:text-indigo-600 hover:border-indigo-300 transition-colors">
+          <div class="flex items-center justify-center space-x-2">
+            <span>{{ getTeamName(0) }}</span>
+            @if (isTeamValid(0)) {
+              <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            } @else {
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300">
+                {{ team1SelectedPlayers.length }}/11
+              </span>
+            }
+          </div>
+        </button>
+        
+        <button
+          type="button"
+          (click)="activeTab = 'team2'"
+          [class.border-indigo-600]="activeTab === 'team2'"
+          [class.text-indigo-600]="activeTab === 'team2'"
+          [class.border-transparent]="activeTab !== 'team2'"
+          [class.text-gray-500]="activeTab !== 'team2'"
+          class="flex-1 py-4 px-6 text-center border-b-2 font-medium text-sm hover:text-indigo-600 hover:border-indigo-300 transition-colors">
+          <div class="flex items-center justify-center space-x-2">
+            <span>{{ getTeamName(1) }}</span>
+            @if (isTeamValid(1)) {
+              <svg class="h-5 w-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            } @else {
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300">
+                {{ team2SelectedPlayers.length }}/11
+              </span>
+            }
+          </div>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Team 1 Content -->
+    @if (activeTab === 'team1') {
+      <div class="p-6 animate-fadeIn">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Available Players -->
+          <div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Available Players ({{ getTeamPlayers(0).length }})
+              </label>
+              <input
+                type="text"
+                [(ngModel)]="searchTerm1"
+                placeholder="Search players..."
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+            </div>
+
+            <div class="space-y-2 max-h-[500px] overflow-y-auto pr-2">
+              @for (player of getFilteredPlayers(0); track player.id) {
+                <button
+                  type="button"
+                  (click)="togglePlayerSelection(player, 0)"
+                  [disabled]="!canSelectMore(0) && !isPlayerSelected(player, 0)"
+                  [class.opacity-50]="!canSelectMore(0) && !isPlayerSelected(player, 0)"
+                  [class.cursor-not-allowed]="!canSelectMore(0) && !isPlayerSelected(player, 0)"
+                  [class.bg-indigo-50]="isPlayerSelected(player, 0)"
+                  [class.dark:bg-indigo-900/30]="isPlayerSelected(player, 0)"
+                  [class.border-indigo-600]="isPlayerSelected(player, 0)"
+                  class="w-full text-left p-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-indigo-400 transition-all group">
+                  <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                      <div class="font-medium text-gray-900 dark:text-white">
+                        {{ player.known_as || player.full_name }}
+                      </div>
+                      <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {{ getPlayerRole(player) }}
+                        @if (player.batting_style && player.batting_style !== 'NONE') {
+                          <span> • {{ player.batting_style }}</span>
+                        }
+                        @if (player.bowling_style && player.bowling_style !== 'NONE') {
+                          <span> • {{ player.bowling_style }}</span>
+                        }
+                      </div>
+                    </div>
+                    @if (isPlayerSelected(player, 0)) {
+                      <svg class="h-5 w-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    } @else {
+                      <svg class="h-5 w-5 text-gray-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                    }
+                  </div>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Selected Lineup -->
+          <div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Playing XI ({{ team1SelectedPlayers.length }}/11)
+              </label>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Click ↑↓ to reorder batting lineup • Select captain (C) • Optional vice-captain (VC)
+              </p>
+            </div>
+
+            @if (team1SelectedPlayers.length === 0) {
+              <div class="text-center py-12 text-gray-400 dark:text-gray-500">
+                <svg class="h-12 w-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <p>No players selected yet</p>
+              </div>
+            } @else {
+              <div class="space-y-2 max-h-[500px] overflow-y-auto pr-2">
+                @for (player of team1SelectedPlayers; track player.id; let idx = $index) {
+                  <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <div class="flex items-center gap-2">
+                      <span class="flex-shrink-0 w-6 text-center font-semibold text-gray-600 dark:text-gray-300">
+                        {{ idx + 1 }}
+                      </span>
+                      
+                      <div class="flex flex-col gap-1 flex-shrink-0">
+                        <button
+                          type="button"
+                          (click)="movePlayerUp(player, 0)"
+                          [disabled]="idx === 0"
+                          [class.opacity-30]="idx === 0"
+                          class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors">
+                          <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          (click)="movePlayerDown(player, 0)"
+                          [disabled]="idx === team1SelectedPlayers.length - 1"
+                          [class.opacity-30]="idx === team1SelectedPlayers.length - 1"
+                          class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors">
+                          <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <div class="flex-1 min-w-0">
+                        <div class="font-medium text-gray-900 dark:text-white truncate">
+                          {{ player.known_as || player.full_name }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                          {{ getPlayerRole(player) }}
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          type="button"
+                          (click)="setCaptain(player.id, 0)"
+                          [class.bg-yellow-500]="team1Captain === player.id"
+                          [class.text-white]="team1Captain === player.id"
+                          [class.bg-gray-200]="team1Captain !== player.id"
+                          [class.dark:bg-gray-600]="team1Captain !== player.id"
+                          class="px-2 py-1 rounded text-xs font-bold hover:bg-yellow-400 transition-colors">
+                          C
+                        </button>
+                        <button
+                          type="button"
+                          (click)="setViceCaptain(player.id, 0)"
+                          [class.bg-blue-500]="team1ViceCaptain === player.id"
+                          [class.text-white]="team1ViceCaptain === player.id"
+                          [class.bg-gray-200]="team1ViceCaptain !== player.id"
+                          [class.dark:bg-gray-600]="team1ViceCaptain !== player.id"
+                          class="px-2 py-1 rounded text-xs font-bold hover:bg-blue-400 transition-colors">
+                          VC
+                        </button>
+                        <button
+                          type="button"
+                          (click)="togglePlayerSelection(player, 0)"
+                          class="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors">
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (team1SelectedPlayers.length === 11 && !team1Captain) {
+              <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <p class="text-sm text-yellow-800 dark:text-yellow-300">
+                  <strong>Note:</strong> Please select a captain (C) before proceeding
+                </p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Team 2 Content (Same structure) -->
+    @if (activeTab === 'team2') {
+      <div class="p-6 animate-fadeIn">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Available Players -->
+          <div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Available Players ({{ getTeamPlayers(1).length }})
+              </label>
+              <input
+                type="text"
+                [(ngModel)]="searchTerm2"
+                placeholder="Search players..."
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent dark:bg-gray-700 dark:text-white">
+            </div>
+
+            <div class="space-y-2 max-h-[500px] overflow-y-auto pr-2">
+              @for (player of getFilteredPlayers(1); track player.id) {
+                <button
+                  type="button"
+                  (click)="togglePlayerSelection(player, 1)"
+                  [disabled]="!canSelectMore(1) && !isPlayerSelected(player, 1)"
+                  [class.opacity-50]="!canSelectMore(1) && !isPlayerSelected(player, 1)"
+                  [class.cursor-not-allowed]="!canSelectMore(1) && !isPlayerSelected(player, 1)"
+                  [class.bg-indigo-50]="isPlayerSelected(player, 1)"
+                  [class.dark:bg-indigo-900/30]="isPlayerSelected(player, 1)"
+                  [class.border-indigo-600]="isPlayerSelected(player, 1)"
+                  class="w-full text-left p-3 border-2 border-gray-200 dark:border-gray-700 rounded-lg hover:border-indigo-400 transition-all group">
+                  <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                      <div class="font-medium text-gray-900 dark:text-white">
+                        {{ player.known_as || player.full_name }}
+                      </div>
+                      <div class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        {{ getPlayerRole(player) }}
+                        @if (player.batting_style && player.batting_style !== 'NONE') {
+                          <span> • {{ player.batting_style }}</span>
+                        }
+                        @if (player.bowling_style && player.bowling_style !== 'NONE') {
+                          <span> • {{ player.bowling_style }}</span>
+                        }
+                      </div>
+                    </div>
+                    @if (isPlayerSelected(player, 1)) {
+                      <svg class="h-5 w-5 text-indigo-600 dark:text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    } @else {
+                      <svg class="h-5 w-5 text-gray-400 group-hover:text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                    }
+                  </div>
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Selected Lineup -->
+          <div>
+            <div class="mb-4">
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Playing XI ({{ team2SelectedPlayers.length }}/11)
+              </label>
+              <p class="text-xs text-gray-500 dark:text-gray-400">
+                Click ↑↓ to reorder batting lineup • Select captain (C) • Optional vice-captain (VC)
+              </p>
+            </div>
+
+            @if (team2SelectedPlayers.length === 0) {
+              <div class="text-center py-12 text-gray-400 dark:text-gray-500">
+                <svg class="h-12 w-12 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <p>No players selected yet</p>
+              </div>
+            } @else {
+              <div class="space-y-2 max-h-[500px] overflow-y-auto pr-2">
+                @for (player of team2SelectedPlayers; track player.id; let idx = $index) {
+                  <div class="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <div class="flex items-center gap-2">
+                      <span class="flex-shrink-0 w-6 text-center font-semibold text-gray-600 dark:text-gray-300">
+                        {{ idx + 1 }}
+                      </span>
+                      
+                      <div class="flex flex-col gap-1 flex-shrink-0">
+                        <button
+                          type="button"
+                          (click)="movePlayerUp(player, 1)"
+                          [disabled]="idx === 0"
+                          [class.opacity-30]="idx === 0"
+                          class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors">
+                          <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+                          </svg>
+                        </button>
+                        <button
+                          type="button"
+                          (click)="movePlayerDown(player, 1)"
+                          [disabled]="idx === team2SelectedPlayers.length - 1"
+                          [class.opacity-30]="idx === team2SelectedPlayers.length - 1"
+                          class="p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded transition-colors">
+                          <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <div class="flex-1 min-w-0">
+                        <div class="font-medium text-gray-900 dark:text-white truncate">
+                          {{ player.known_as || player.full_name }}
+                        </div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
+                          {{ getPlayerRole(player) }}
+                        </div>
+                      </div>
+
+                      <div class="flex items-center gap-1 flex-shrink-0">
+                        <button
+                          type="button"
+                          (click)="setCaptain(player.id, 1)"
+                          [class.bg-yellow-500]="team2Captain === player.id"
+                          [class.text-white]="team2Captain === player.id"
+                          [class.bg-gray-200]="team2Captain !== player.id"
+                          [class.dark:bg-gray-600]="team2Captain !== player.id"
+                          class="px-2 py-1 rounded text-xs font-bold hover:bg-yellow-400 transition-colors">
+                          C
+                        </button>
+                        <button
+                          type="button"
+                          (click)="setViceCaptain(player.id, 1)"
+                          [class.bg-blue-500]="team2ViceCaptain === player.id"
+                          [class.text-white]="team2ViceCaptain === player.id"
+                          [class.bg-gray-200]="team2ViceCaptain !== player.id"
+                          [class.dark:bg-gray-600]="team2ViceCaptain !== player.id"
+                          class="px-2 py-1 rounded text-xs font-bold hover:bg-blue-400 transition-colors">
+                          VC
+                        </button>
+                        <button
+                          type="button"
+                          (click)="togglePlayerSelection(player, 1)"
+                          class="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors">
+                          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (team2SelectedPlayers.length === 11 && !team2Captain) {
+              <div class="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                <p class="text-sm text-yellow-800 dark:text-yellow-300">
+                  <strong>Note:</strong> Please select a captain (C) before proceeding
+                </p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="mt-6 flex justify-between">
+    <button
+      type="button"
+      (click)="goBack()"
+      class="px-6 py-3 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center space-x-2">
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+      <span>Back to Toss</span>
+    </button>
+
+    <button
+      type="button"
+      (click)="submitLineup()"
+      [disabled]="!isValid"
+      [class.opacity-50]="!isValid"
+      [class.cursor-not-allowed]="!isValid"
+      class="px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:hover:bg-indigo-600 transition-colors flex items-center space-x-2">
+      <span>Start Match</span>
+      <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+      </svg>
+    </button>
+  </div>
+</div>

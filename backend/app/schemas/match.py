@@ -1,7 +1,7 @@
 """Match schemas for API requests and responses."""
 from typing import Optional, List
 from datetime import datetime, date
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.schemas import TimestampMixin, PublicIdMixin
 from app.schemas.team import TeamSummary
@@ -25,18 +25,13 @@ class MatchBase(BaseModel):
     """Base match schema with common fields."""
     venue_id: str = Field(..., description="Venue public ULID")
     tournament_id: Optional[str] = Field(None, description="Tournament public ULID")
-    match_number: Optional[str] = Field(None, max_length=50, description="Match number in tournament")
     match_type: str = Field(..., max_length=20, description="T20, ODI, TEST, T10, 100BALL")
     status: str = Field("SCHEDULED", max_length=20, description="SCHEDULED, LIVE, COMPLETED, ABANDONED, CANCELLED")
-    scheduled_start: Optional[datetime] = Field(None, description="Scheduled start time (UTC)")
-    actual_start: Optional[datetime] = Field(None, description="Actual start time (UTC)")
-    end_time: Optional[datetime] = Field(None, description="Match end time (UTC)")
-    overs_per_innings: Optional[int] = Field(None, ge=1, description="Overs per innings")
-    is_day_night: bool = Field(False, description="Day-night match flag")
-    is_neutral_venue: bool = Field(False, description="Neutral venue flag")
-    result_type: Optional[str] = Field(None, max_length=50, description="NORMAL, TIE, NO_RESULT, SUPER_OVER")
-    winning_team_id: Optional[str] = Field(None, description="Winning team public ULID")
-    result_margin: Optional[str] = Field(None, max_length=100, description="Win margin description")
+    start_time: Optional[datetime] = Field(None, description="Scheduled start time (UTC)")
+    local_tz: Optional[str] = Field(None, max_length=64, description="Local timezone at venue")
+    overs_limit: Optional[int] = Field(None, ge=1, description="Overs per innings (NULL for unlimited/TEST)")
+    balls_per_over: int = Field(6, ge=1, le=10, description="Number of balls per over (typically 6)")
+    notes: Optional[str] = Field(None, description="Additional notes or comments about the match")
 
 
 class MatchCreate(MatchBase):
@@ -49,18 +44,13 @@ class MatchUpdate(BaseModel):
     """Schema for updating a match (all fields optional)."""
     venue_id: Optional[str] = None
     tournament_id: Optional[str] = None
-    match_number: Optional[str] = Field(None, max_length=50)
     match_type: Optional[str] = Field(None, max_length=20)
     status: Optional[str] = Field(None, max_length=20)
-    scheduled_start: Optional[datetime] = None
-    actual_start: Optional[datetime] = None
-    end_time: Optional[datetime] = None
-    overs_per_innings: Optional[int] = Field(None, ge=1)
-    is_day_night: Optional[bool] = None
-    is_neutral_venue: Optional[bool] = None
-    result_type: Optional[str] = Field(None, max_length=50)
-    winning_team_id: Optional[str] = None
-    result_margin: Optional[str] = Field(None, max_length=100)
+    start_time: Optional[datetime] = None
+    local_tz: Optional[str] = Field(None, max_length=64)
+    overs_limit: Optional[int] = Field(None, ge=1)
+    balls_per_over: Optional[int] = Field(None, ge=1, le=10)
+    notes: Optional[str] = None
 
 
 class MatchTossUpdate(BaseModel):
@@ -76,22 +66,56 @@ class MatchInDB(MatchBase, PublicIdMixin, TimestampMixin):
     id: int = Field(..., description="Internal database ID")
 
 
-class MatchResponse(MatchInDB):
+class MatchResponse(PublicIdMixin, TimestampMixin):
     """Match schema for API responses with nested relationships."""
+    model_config = ConfigDict(from_attributes=True)
+    
+    id: int = Field(..., description="Internal database ID")
+    match_type: str = Field(..., max_length=20, description="T20, ODI, TEST, T10, 100BALL")
+    status: str = Field("SCHEDULED", max_length=20, description="SCHEDULED, LIVE, COMPLETED, ABANDONED, CANCELLED")
+    start_time: Optional[datetime] = Field(None, description="Scheduled start time (UTC)")
+    local_tz: Optional[str] = Field(None, max_length=64, description="Local timezone at venue")
+    overs_limit: Optional[int] = Field(None, ge=1, description="Overs per innings (NULL for unlimited/TEST)")
+    balls_per_over: int = Field(6, ge=1, le=10, description="Number of balls per over (typically 6)")
+    notes: Optional[str] = Field(None, description="Additional notes or comments about the match")
     venue: Optional[VenueSummary] = None
     tournament: Optional[TournamentSummary] = None
     teams: List[TeamSummary] = Field(default_factory=list, description="Participating teams")
-    toss_winner: Optional[TeamSummary] = None
-    winning_team: Optional[TeamSummary] = None
+    
+    @field_validator('teams', mode='before')
+    @classmethod
+    def extract_teams_from_match_teams(cls, v):
+        """Extract Team objects from MatchTeam associations."""
+        if not v:
+            return []
+        # If it's already a list of Team/TeamSummary, return as-is
+        if isinstance(v, list) and len(v) > 0:
+            # Check if it's MatchTeam objects (they have a 'team' attribute)
+            if hasattr(v[0], 'team'):
+                return [mt.team for mt in v]
+        return v
 
 
 class MatchSummary(BaseModel):
     """Lightweight match summary for nested responses."""
-    model_config = ConfigDict(from_attributes=True)
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
     
     public_id: str = Field(..., description="Public ULID identifier")
     match_type: str = Field(..., description="Match type")
     status: str = Field(..., description="Match status")
-    scheduled_start: Optional[datetime] = Field(None, description="Scheduled start time")
+    start_time: Optional[datetime] = Field(None, description="Scheduled start time")
     venue: Optional[VenueSummary] = None
     teams: List[TeamSummary] = Field(default_factory=list, description="Participating teams")
+    
+    @field_validator('teams', mode='before')
+    @classmethod
+    def extract_teams_from_match_teams(cls, v):
+        """Extract Team objects from MatchTeam associations."""
+        if not v:
+            return []
+        # If it's already a list of Team/TeamSummary, return as-is
+        if isinstance(v, list) and len(v) > 0:
+            # Check if it's MatchTeam objects (they have a 'team' attribute)
+            if hasattr(v[0], 'team'):
+                return [mt.team for mt in v]
+        return v

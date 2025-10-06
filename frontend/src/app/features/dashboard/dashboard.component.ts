@@ -83,8 +83,8 @@ import { Match, MatchStatus } from '@core/models';
                   }
                 </div>
                 <div class="mt-3 text-sm text-gray-600 dark:text-gray-400">
-                  @if (match.scheduled_start) {
-                    🕐 {{ formatDate(match.scheduled_start) }}<br>
+                  @if (match.start_time) {
+                    🕐 {{ formatDate(match.start_time) }}<br>
                   }
                   📍 {{ match.venue?.name }}
                 </div>
@@ -142,18 +142,13 @@ import { Match, MatchStatus } from '@core/models';
                     <div class="mt-2 space-y-1">
                       @for (team of match.teams; track team.public_id) {
                         <div class="flex items-center justify-between">
-                          <span [class.font-bold]="match.winning_team_id === team.public_id">
+                          <span>
                             {{ team.name }}
                           </span>
                           <span>150/8 (20)</span>
                         </div>
                       }
                     </div>
-                    @if (match.result_margin) {
-                      <p class="mt-2 text-sm text-green-600 dark:text-green-400 font-semibold">
-                        {{ match.result_margin }}
-                      </p>
-                    }
                   </div>
                 </div>
               </div>

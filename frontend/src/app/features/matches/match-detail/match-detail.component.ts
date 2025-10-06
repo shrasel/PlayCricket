@@ -163,13 +163,6 @@ export class MatchDetailComponent implements OnInit {
     return this.match.teams[index].logo_url;
   }
 
-  getTossWinnerName(): string {
-    if (!this.match || !this.match.toss_winner) {
-      return 'Not conducted';
-    }
-    return this.match.toss_winner.name;
-  }
-
   backToList(): void {
     this.router.navigate(['/matches']);
   }

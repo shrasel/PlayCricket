@@ -220,40 +220,28 @@ export interface Match extends TimestampMixin, PublicIdMixin {
   id: number;
   venue_id: string;
   tournament_id?: string;
-  match_number?: string;
   match_type: MatchType;
   status: MatchStatus;
-  scheduled_start?: string;
-  actual_start?: string;
-  end_time?: string;
-  overs_per_innings?: number;
-  is_day_night: boolean;
-  is_neutral_venue: boolean;
-  result_type?: string;
-  winning_team_id?: string;
-  result_margin?: string;
+  start_time?: string;
+  local_tz?: string;
+  overs_limit?: number;
+  balls_per_over: number;
+  notes?: string;
   venue?: VenueSummary;
   tournament?: TournamentSummary;
   teams?: TeamSummary[];
-  toss_winner?: TeamSummary;
-  winning_team?: TeamSummary;
 }
 
 export interface MatchCreate {
   venue_id: string;
   tournament_id?: string;
-  match_number?: string;
   match_type: MatchType;
   status?: MatchStatus;
-  scheduled_start?: string;
-  actual_start?: string;
-  end_time?: string;
-  overs_per_innings?: number;
-  is_day_night?: boolean;
-  is_neutral_venue?: boolean;
-  result_type?: string;
-  winning_team_id?: string;
-  result_margin?: string;
+  start_time?: string;
+  local_tz?: string;
+  overs_limit?: number;
+  balls_per_over?: number;
+  notes?: string;
   teams: MatchTeam[];
   toss?: MatchToss;
 }
@@ -261,18 +249,13 @@ export interface MatchCreate {
 export interface MatchUpdate {
   venue_id?: string;
   tournament_id?: string;
-  match_number?: string;
   match_type?: MatchType;
   status?: MatchStatus;
-  scheduled_start?: string;
-  actual_start?: string;
-  end_time?: string;
-  overs_per_innings?: number;
-  is_day_night?: boolean;
-  is_neutral_venue?: boolean;
-  result_type?: string;
-  winning_team_id?: string;
-  result_margin?: string;
+  start_time?: string;
+  local_tz?: string;
+  overs_limit?: number;
+  balls_per_over?: number;
+  notes?: string;
 }
 
 export interface TossInfo {
