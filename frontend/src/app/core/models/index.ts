@@ -119,35 +119,33 @@ export interface PlayerSummary {
 export interface Venue extends TimestampMixin, PublicIdMixin {
   id: number;
   name: string;
-  city: string;
-  country_code: string;
-  capacity?: number;
-  established_year?: number;
-  pitch_type?: string;
-  description?: string;
-  latitude?: number;
-  longitude?: number;
+  city?: string;
+  country_code?: string;
+  timezone_name?: string;
+  ends_names?: string;
 }
 
 export interface VenueCreate {
   name: string;
-  city: string;
-  country_code: string;
-  capacity?: number;
-  established_year?: number;
-  pitch_type?: string;
-  description?: string;
-  latitude?: number;
-  longitude?: number;
+  city?: string;
+  country_code?: string;
+  timezone_name?: string;
+  ends_names?: string;
 }
 
-export interface VenueUpdate extends Partial<VenueCreate> {}
+export interface VenueUpdate {
+  name?: string;
+  city?: string;
+  country_code?: string;
+  timezone_name?: string;
+  ends_names?: string;
+}
 
 export interface VenueSummary {
   public_id: string;
   name: string;
-  city: string;
-  country_code: string;
+  city?: string;
+  country_code?: string;
 }
 
 // Tournament interfaces

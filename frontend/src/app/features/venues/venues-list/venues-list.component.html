@@ -1,0 +1,180 @@
+<div class="container mx-auto px-4 py-8">
+  <!-- Header -->
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Venues</h1>
+    <a routerLink="/venues/create" class="btn btn-primary">
+      ➕ Create Venue
+    </a>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Search -->
+      <div>
+        <label class="form-label">Search</label>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+          placeholder="Search by name or city..."
+          class="form-input"
+        />
+      </div>
+
+      <!-- Country Filter -->
+      <div>
+        <label class="form-label">Country Code</label>
+        <input
+          type="text"
+          [(ngModel)]="countryFilter"
+          (ngModelChange)="onCountryFilterChange()"
+          placeholder="e.g., IND, AUS"
+          maxlength="3"
+          class="form-input"
+        />
+      </div>
+
+      <!-- Clear Filters -->
+      <div class="flex items-end">
+        <button
+          (click)="clearFilters()"
+          class="btn btn-secondary w-full"
+        >
+          Clear Filters
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  @if (loading) {
+    <div class="flex justify-center items-center py-12">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  <!-- Error State -->
+  @if (error) {
+    <div class="bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 p-4 rounded-lg mb-6">
+      {{ error }}
+    </div>
+  }
+
+  <!-- Venues Grid -->
+  @if (!loading && !error) {
+    @if (filteredVenues.length > 0) {
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-6">
+        @for (venue of filteredVenues; track venue.public_id) {
+          <a
+            [routerLink]="['/venues', venue.public_id]"
+            class="card hover:shadow-lg transition-shadow cursor-pointer group"
+          >
+            <!-- Venue Header with Gradient -->
+            <div class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-4 rounded-t-lg -m-6 mb-4">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <div class="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center text-xl font-bold">
+                    {{ getVenueInitials(venue.name) }}
+                  </div>
+                  <div class="flex-1">
+                    <h3 class="font-bold text-lg group-hover:underline">{{ venue.name }}</h3>
+                    @if (venue.city) {
+                      <p class="text-sm text-white/80">{{ venue.city }}</p>
+                    }
+                  </div>
+                </div>
+                @if (venue.country_code) {
+                  <span class="text-2xl">{{ getCountryFlag(venue.country_code) }}</span>
+                }
+              </div>
+            </div>
+
+            <!-- Venue Details -->
+            <div class="space-y-2">
+              @if (venue.city || venue.country_code) {
+                <div class="text-sm text-gray-600 dark:text-gray-400">
+                  <span class="font-semibold">Location:</span>
+                  @if (venue.city && venue.country_code) {
+                    {{ venue.city }}, {{ venue.country_code }}
+                  } @else if (venue.city) {
+                    {{ venue.city }}
+                  } @else if (venue.country_code) {
+                    {{ venue.country_code }}
+                  }
+                </div>
+              }
+
+              @if (venue.timezone_name) {
+                <div class="text-sm text-gray-600 dark:text-gray-400">
+                  <span class="font-semibold">Timezone:</span> {{ venue.timezone_name }}
+                </div>
+              }
+
+              @if (venue.ends_names) {
+                <div class="text-sm text-gray-600 dark:text-gray-400">
+                  <span class="font-semibold">Ends:</span> {{ venue.ends_names }}
+                </div>
+              }
+            </div>
+
+            <!-- View Details Arrow -->
+            <div class="mt-4 text-primary-600 dark:text-primary-400 group-hover:translate-x-2 transition-transform">
+              View Details →
+            </div>
+          </a>
+        }
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between">
+        <div class="text-sm text-gray-600 dark:text-gray-400">
+          Showing {{ Math.min(currentPage * pageSize, totalVenues) }} of {{ totalVenues }} venues
+        </div>
+        <div class="flex gap-2">
+          <button
+            (click)="previousPage()"
+            [disabled]="currentPage === 1"
+            class="btn btn-secondary"
+            [class.opacity-50]="currentPage === 1"
+            [class.cursor-not-allowed]="currentPage === 1"
+          >
+            ← Previous
+          </button>
+          <span class="px-4 py-2 text-gray-700 dark:text-gray-300">
+            Page {{ currentPage }} of {{ totalPages }}
+          </span>
+          <button
+            (click)="nextPage()"
+            [disabled]="currentPage >= totalPages"
+            class="btn btn-secondary"
+            [class.opacity-50]="currentPage >= totalPages"
+            [class.cursor-not-allowed]="currentPage >= totalPages"
+          >
+            Next →
+          </button>
+        </div>
+      </div>
+    } @else {
+      <!-- Empty State -->
+      <div class="card text-center py-12">
+        <div class="text-6xl mb-4">🏟️</div>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          No venues found
+        </h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">
+          @if (searchTerm || countryFilter) {
+            Try adjusting your filters or clear them to see all venues.
+          } @else {
+            Get started by adding your first venue.
+          }
+        </p>
+        @if (!searchTerm && !countryFilter) {
+          <a routerLink="/venues/create" class="btn btn-primary">
+            Create Venue
+          </a>
+        }
+      </div>
+    }
+  }
+</div>
