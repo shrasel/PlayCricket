@@ -8,15 +8,14 @@ export const TOURNAMENTS_ROUTES: Routes = [
   {
     path: 'create',
     loadComponent: () => import('./tournament-form/tournament-form.component').then(m => m.TournamentFormComponent)
+  },
+  {
+    path: ':id',
+    loadComponent: () => import('./tournament-detail/tournament-detail.component').then(m => m.TournamentDetailComponent)
+  },
+  {
+    path: ':id/edit',
+    loadComponent: () => import('./tournament-form/tournament-form.component').then(m => m.TournamentFormComponent)
   }
-  // TODO: Uncomment when tournament-detail component is created
-  // {
-  //   path: ':id',
-  //   loadComponent: () => import('./tournament-detail/tournament-detail.component').then(m => m.TournamentDetailComponent)
-  // },
-  // {
-  //   path: ':id/edit',
-  //   loadComponent: () => import('./tournament-form/tournament-form.component').then(m => m.TournamentFormComponent)
-  // }
 ];
 
