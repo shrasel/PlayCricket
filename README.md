@@ -1,442 +1,272 @@
-# PlayCricket - Complete Cricket Platform
+<div align="center">
 
-## � Overview
+# 🏏 PlayCricket
 
-## 🏏 Overview
+### Professional Cricket Management, Live Scoring, and Analytics Platform
 
-A comprehensive **Cricinfo-class cricket platform** with real-time live scoring, advanced analytics, tournament management, and Angular frontend. This system supports all cricket formats (Test, ODI, T20, T10, The Hundred) with professional-grade features including ball-by-ball tracking, DRS integration, Net Run Rate calculations, and interactive charts.
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115.0-009688?style=flat-square&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Angular](https://img.shields.io/badge/Angular-18.2-DD0031?style=flat-square&logo=angular)](https://angular.io/)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15+-4169E1?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-7+-DC382D?style=flat-square&logo=redis&logoColor=white)](https://redis.io/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.5-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
----
+Modern full-stack platform for live cricket scoring, tournament management, and advanced analytics across Test, ODI, T20, T10, and The Hundred.
 
-## 🚀 GETTING STARTED
+[Features](#-features) • [Quick Start](#-quick-start) • [Architecture](#-architecture) • [API](#-api-overview) • [Development](#-development) • [Testing](#-testing) • [Deployment](#-docker--deployment) • [Contributing](#-contributing)
 
-**New to this project? Start here!** �
-
-1. **[NEXT_STEPS.md](NEXT_STEPS.md)** - 🎯 Your step-by-step getting started guide
-2. **[TDD_WORKFLOW.md](TDD_WORKFLOW.md)** - 🔄 Visual guide to Test-Driven Development
-3. **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - �📊 Current project status and progress
-4. **[DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)** - 📅 Complete 10-week development roadmap
-5. **[backend/DEV_GUIDE.md](backend/DEV_GUIDE.md)** - 🛠️ Backend development workflow
-6. **[backend/README.md](backend/README.md)** - 📚 Backend quick reference
-
-**Quick Start**:
-```bash
-cd backend && ./setup.sh  # Automated setup
-source venv/bin/activate  # Activate environment
-pytest -v                 # Run tests
-```
+</div>
 
 ---
 
-## 📊 Architecture Summary
+## 📋 Overview
 
-**Frontend**: Angular (standalone components, RxJS, signals)  
-**Backend**: FastAPI (Python) with SQLAlchemy ORM  
-**Database**: PostgreSQL 15+ (production), SQLite (dev)  
-**Cache**: Redis 7+ for caching and sessions  
-**Real-time**: WebSockets for live updates  
-**Analytics**: SQL views + materialized views for heavy aggregations  
+PlayCricket delivers professional-grade cricket operations:
 
----  
-
-## 🗄️ Database Schema
-
-### Core Entities
-- **Teams & Players**: Full profiles with batting/bowling styles, nationalities
-- **Venues**: With timezone support, capacity, pitch characteristics
-- **Officials**: Umpires, referees, scorers with role-based assignments
-- **Tournaments**: Multi-stage support (league, knockout) with custom points systems
-
-### Match Lifecycle
-- **Match Setup**: Toss, Playing XIs, venue, format specifications
-- **Innings**: Target tracking, powerplay periods, DLS revisions
-- **Deliveries**: Ball-by-ball source of truth with wagon wheel coordinates
-- **Live State**: Current players, required run rates, match situation
-
-### Advanced Features
-- **DRS Events**: Ball tracking, Ultra Edge, Hot Spot integration
-- **Commentary**: Live feed with key moments and social engagement
-- **Corrections**: Non-destructive revisions via `replaces_delivery_id`
-- **Interruptions**: Rain delays, bad light with DLS calculations
-
-## 🔧 Key Design Principles
-
-### Data Integrity
-- **Surrogate Keys**: Integer PKs (SQLite/Postgres compatible) + ULID public IDs
-- **Enum Tables**: Lookup tables instead of CHECK constraints (MySQL compatible)
-- **Foreign Keys**: ON DELETE RESTRICT with proper cascade where appropriate
-- **Non-destructive Corrections**: All changes create new records, never delete
-
-### Performance & Scalability
-- **Computed Views**: Scorecards derived from deliveries, not stored totals
-- **Strategic Indexes**: Optimized for live scoring queries and analytics
-- **Ball Indexing**: `over_number` (0-based) + `ball_in_over` + `is_legal_delivery`
-- **Materialized Views**: For heavy aggregations (league tables, career stats)
-
-### Live Scoring Model
-```sql
--- Ball position: Over 5, Ball 3 (5.3)
-over_number: 5,        -- 0-based (6th over)
-ball_in_over: 3,       -- 1-6 ball in over
-is_legal_delivery: 1   -- false for wides/no-balls
-
--- Runs split
-runs_batter: 4,        -- runs credited to batsman
-runs_extras: 0,        -- bye/legbye/wide/noball/penalty
-extra_type: 'NONE'     -- or BYE/LEGBYE/WIDE/NO_BALL/PENALTY
-```
-
-## 📈 Statistics & Analytics
-
-### Core Views
-- **`v_current_deliveries`**: Active balls (filters superseded corrections)
-- **`v_innings_summary`**: Live totals, run rates, boundaries computed from deliveries
-- **`v_batting_scorecard`**: Individual batting figures with strike rates
-- **`v_bowling_figures`**: Overs, economy, wickets with maiden detection
-- **`v_partnerships`**: Partnership tracking with run contributions
-
-### Charts & Visualizations
-- **Manhattan Chart**: Over-by-over runs with cumulative totals (`v_manhattan_chart`)
-- **Wagon Wheel**: Shot placement with normalized coordinates (`v_wagon_wheel`)
-- **Worm Chart**: Cumulative runs progression with target chase visualization
-- **Pitch Maps**: Ball pitching locations for bowling analysis
-
-### Tournament Features
-- **League Tables**: Points calculation with Net Run Rate (`v_league_table`)
-- **Head-to-Head**: Team vs team records (`v_head_to_head`)
-- **Recent Form**: Last 5 matches as W/L/T/N string (`v_recent_form`)
-- **Fixtures**: Upcoming matches with context (`v_tournament_fixtures`)
-
-## 🚀 API Architecture
-
-### FastAPI Endpoints
-```python
-# Live Scoring
-GET /api/matches/{id}/live          # Real-time match center
-POST /api/deliveries                # Record ball delivery
-PUT /api/matches/{id}/status        # Update match state
-
-# Analytics  
-GET /api/matches/{id}/scorecard     # Complete scorecard
-GET /api/matches/{id}/manhattan     # Manhattan chart data
-GET /api/matches/{id}/wagon-wheel   # Shot placement data
-
-# Tournament
-GET /api/tournaments/{id}/standings # League table
-GET /api/tournaments/{id}/fixtures  # Match schedule
-
-# Real-time
-WebSocket /ws/matches/{id}          # Live updates
-WebSocket /ws/live                  # Global updates
-```
-
-### Angular Services
-- **CricketApiService**: HTTP client with type-safe DTOs
-- **CricketWebSocketService**: Real-time subscriptions
-- **Chart Components**: Manhattan, Wagon Wheel, Worm charts
-- **Live Scorer**: Admin interface for ball-by-ball entry
-
-## 🎯 Live Scoring Demo
-
-### Test Scenario (2 Overs)
-**Match**: Mumbai Indians vs Chennai Super Kings  
-**Venue**: Wankhede Stadium, Mumbai  
-**Format**: T20 (20 overs)  
-**Toss**: CSK wins, bats first  
-
-**Over 1 (Bumrah)**: 8 runs (0,1,0,W,4,2,0)  
-**Over 2 (Boult)**: 14 runs including wicket (6,Nb+4,2,W,0,1,0)  
-
-### Key Features Demonstrated
-- ✅ Toss recording with decision tracking
-- ✅ Playing XI setup with batting orders
-- ✅ Legal vs illegal deliveries (wides, no-balls)
-- ✅ Boundary detection (fours and sixes)
-- ✅ Wicket recording with dismissal types
-- ✅ Live commentary with key moments
-- ✅ Real-time scorecard updates
-- ✅ Partnership tracking
-- ✅ Bowling spell management
-
-## 🔐 Migration Strategy
-
-### Database Portability
-```sql
--- SQLite (Development)
-id INTEGER PRIMARY KEY          -- Auto-increment
-public_id TEXT                  -- ULID storage
-timestamps TEXT                 -- ISO8601 format
-json_field TEXT                 -- JSON as TEXT
-
--- PostgreSQL (Production)  
-id BIGINT GENERATED ALWAYS AS IDENTITY
-public_id UUID                  -- Native UUID type
-timestamps TIMESTAMPTZ         -- Timezone-aware
-json_field JSONB               -- Binary JSON
-
--- MySQL (Alternative)
-id BIGINT AUTO_INCREMENT PRIMARY KEY
-public_id CHAR(26)             -- ULID as fixed string
-timestamps TIMESTAMP           -- UTC normalized
-json_field JSON                -- Native JSON type
-```
-
-### Migration Files
-1. **001_core_schema.sql**: Base tables with indexes
-2. **002_enum_seeds.sql**: Reference data population  
-3. **003_stats_views.sql**: Scorecard and analytics views
-4. **004_tournament_views.sql**: League tables and standings
-5. **005_advanced_features.sql**: DRS, commentary, live features
-6. **006_test_data_seeds.sql**: Demo match with 2 overs
-
-## 🎮 Angular Frontend Structure
-
-### Module Organization
-```typescript
-apps/web/
-├── core/
-│   ├── interfaces/cricket-api.interfaces.ts
-│   ├── services/cricket-api.service.ts
-│   └── services/cricket-websocket.service.ts
-├── features/
-│   ├── matches/
-│   │   ├── live-center/
-│   │   ├── scorecard/
-│   │   └── charts/
-│   ├── scorer/
-│   │   └── live-scorer.component.ts
-│   ├── series/
-│   │   ├── fixtures/
-│   │   └── standings/
-│   └── players/
-└── shared/
-    ├── components/
-    └── charts/
-```
-
-### Type-Safe DTOs
-- **LiveMatchCenter**: Real-time match state
-- **MatchScorecard**: Complete batting/bowling cards
-- **TournamentStandings**: League table with NRR
-- **MatchAnalytics**: Chart data (Manhattan, Wagon Wheel)
-- **WebSocket Events**: Real-time update contracts
-
-## 📊 Performance Optimizations
-
-### Critical Indexes
-```sql
--- Live scoring queries
-CREATE INDEX idx_delivery_current ON delivery(innings_id, is_superseded, ball_sequence);
-CREATE INDEX idx_delivery_innings_over ON delivery(innings_id, over_number, ball_in_over);
-
--- Analytics queries  
-CREATE INDEX idx_delivery_striker_innings ON delivery(striker_id, innings_id) WHERE is_superseded = FALSE;
-CREATE INDEX idx_delivery_boundaries ON delivery(innings_id) WHERE is_four = TRUE OR is_six = TRUE;
-
--- Tournament queries
-CREATE INDEX idx_match_tournament ON match(tournament_id, start_time_utc);
-```
-
-### Caching Strategy
-- **Live Data**: WebSocket push + 5-second polling fallback
-- **Scorecards**: Cache for 30 seconds during live matches
-- **League Tables**: Cache for 15 minutes, invalidate on match completion
-- **Historical Data**: Long-term caching with ETags
-
-## 🚦 Next Steps
-
-### Phase 1: MVP Deployment
-1. Deploy SQLite → PostgreSQL migration
-2. Setup FastAPI with core endpoints
-3. Build Angular live scorer + match center
-4. WebSocket real-time updates
-
-### Phase 2: Advanced Features  
-1. DRS event tracking with ball tracking data
-2. Advanced charts (pitch maps, bowling heatmaps)
-3. Player career stats aggregation
-4. Mobile-responsive design
-
-### Phase 3: Scale & Polish
-1. MongoDB integration for telemetry data
-2. Admin audit logs and user management  
-3. API rate limiting and authentication
-4. Performance monitoring and alerting
-
-## 🏆 Feature Parity Achieved
-
-✅ **Live Scoring**: Ball-by-ball with real-time updates  
-✅ **Scorecards**: Batting/bowling cards with partnerships  
-✅ **Analytics**: Manhattan, Wagon Wheel, Worm charts  
-✅ **Tournaments**: League tables with NRR calculation  
-✅ **Commentary**: Live feed with key moments  
-✅ **DLS Support**: Target revisions with resource tracking  
-✅ **Corrections**: Non-destructive delivery revisions  
-✅ **Multi-format**: Test, ODI, T20, T10, The Hundred  
-
-This schema provides a robust foundation for a professional cricket platform matching ESPNcricinfo's feature set while maintaining scalability, data integrity, and real-time performance.
+- ⚡ Real-time live scoring with WebSockets
+- 📊 Advanced analytics: scorecards, Manhattan, Wagon wheel, partnerships
+- 🏆 Tournament management with NRR and multi-stage formats
+- 🔒 Role-based access and secure authentication
+- 🧱 Scalable backend with async SQLAlchemy and Redis caching
 
 ---
 
-## 🚀 DEVELOPMENT STATUS
+## ✨ Features
 
-### ✅ Phase 1: Schema Design & Planning (COMPLETED)
-- Complete database schema (SQLite → PostgreSQL)
-- Comprehensive DTOs and API contracts  
-- Angular TypeScript interfaces
-- Migration files ready
-- Test data with 2-over demo
-
-### 🔨 Phase 2: Backend API Development (IN PROGRESS)
-**Current Status**: Project setup and TDD infrastructure ready
-
-**Completed**:
-- ✅ FastAPI project structure
-- ✅ Docker Compose (PostgreSQL + Redis)
-- ✅ pytest configuration with async support
-- ✅ SQLAlchemy async engine setup
-- ✅ Redis caching layer
-- ✅ Pre-commit hooks (black, flake8, mypy)
-- ✅ Test fixtures and conftest
-- ✅ First TDD test suite (Team model)
-- ✅ Environment configuration
-- ✅ Development guide with TDD workflow
-
-**Next Steps** (Following TDD):
-1. Run failing tests for Team model
-2. Implement Team model to pass tests
-3. Create Alembic migration
-4. Repeat for Player, Venue, Match models
-5. Build repository layer
-6. Implement API endpoints
-
-### 📅 Development Timeline
-
-| Week | Phase | Tasks |
-|------|-------|-------|
-| 1 | Backend Foundation | Models, migrations, repositories (TDD) |
-| 2 | Live Scoring API | Delivery endpoints, WebSockets, real-time |
-| 3 | Analytics API | Scorecards, Manhattan, Wagon Wheel, NRR |
-| 4 | Advanced Features | DRS, commentary, tournament management |
-| 5-6 | Angular Setup | Core services, HTTP interceptors, state |
-| 7-8 | Live UI | Match center, charts, real-time updates |
-| 9-10 | Complete Features | Tournament hub, scorer console, polish |
-
-**Estimated Total**: 10 weeks for full-stack production-ready platform
+- Ball-by-ball scoring with non-destructive corrections
+- Live scorecards computed from deliveries (no duplicated totals)
+- Player and team management, venues, tournaments
+- DLS handling, extras, wickets, milestones, partnerships
+- Type-safe DTOs on the frontend; OpenAPI docs on the backend
 
 ---
 
-## 📂 Project Structure
+## 🧰 Tech Stack
+
+- Backend: FastAPI 0.115.0, SQLAlchemy 2.x (async), Alembic, Redis 7, PostgreSQL 15+
+- Frontend: Angular 18.2, TypeScript 5.5, RxJS, Tailwind (config present)
+- Dev: Docker Compose, pytest, Black/Flake8/mypy, ESLint/Prettier
+
+---
+
+## 🧭 Project Structure
 
 ```
 playcricket/
-├── backend/                    # FastAPI Backend (Python)
+├── backend/                      # FastAPI backend
 │   ├── app/
-│   │   ├── main.py            # FastAPI application
-│   │   ├── core/              # Config, database, cache
-│   │   ├── models/            # SQLAlchemy models (TDD)
-│   │   ├── repositories/      # Data access layer
-│   │   ├── api/               # API endpoints
-│   │   └── schemas/           # Pydantic DTOs
-│   ├── tests/                 # pytest test suites
-│   ├── alembic/               # Database migrations
-│   ├── docker-compose.yml     # PostgreSQL + Redis
-│   ├── requirements.txt       # Python dependencies
-│   ├── setup.sh              # Automated setup script
-│   └── DEV_GUIDE.md          # Development workflow guide
-├── frontend/                  # Angular Frontend (TypeScript)
-│   └── src/app/
-│       ├── core/              # Services, guards, interceptors
-│       ├── features/          # Feature modules
-│       └── shared/            # Shared components
-├── migrations/                # SQL schema files
-├── api/                       # DTO definitions (Python)
-├── DEVELOPMENT_PLAN.md        # Complete development roadmap
-└── README.md                  # This file
+│   │   ├── main.py               # FastAPI app + middleware + routers
+│   │   ├── core/                 # config, database, cache, security
+│   │   ├── models/               # SQLAlchemy ORM models
+│   │   ├── schemas/              # Pydantic schemas
+│   │   ├── services/             # Business logic
+│   │   └── api/                  # API routes
+│   ├── alembic/                  # DB migrations
+│   ├── docker-compose.yml        # Postgres + Redis (dev)
+│   ├── requirements.txt          # Python deps
+│   ├── .env.example              # Backend env template
+│   └── README.md                 # Backend docs
+├── frontend/                     # Angular frontend
+│   ├── package.json              # npm scripts (start, build, test)
+│   └── src/app/                  # Angular app sources
+├── migrations/                   # SQL schema files (views, seeds)
+├── QUICK_START.md                # Quick start guide
+└── README.md                     # This file
 ```
 
 ---
 
-## 🎯 Quick Start
+## 🚀 Quick Start
 
-### Backend Setup
+### Prerequisites
+
+- Python 3.11+
+- Node.js 18+ and npm
+- Docker and Docker Compose
+
+### 1) Backend (API)
+
 ```bash
 cd backend
-./setup.sh
 
-# Manual alternative:
+# Create virtual environment
 python3 -m venv venv
 source venv/bin/activate
+
+# Install dependencies
 pip install -r requirements.txt
+
+# Start services: PostgreSQL + Redis
 docker-compose up -d
+
+# Configure environment
 cp .env.example .env
 
-# Run API
-uvicorn app.main:app --reload
+# Apply migrations
+alembic upgrade head
 
-# Run tests (TDD)
-pytest -v --cov=app
+# Run API (http://localhost:8000)
+uvicorn app.main:app --reload --port 8000
 ```
 
-### Frontend Setup (Coming Soon)
+Docs: http://localhost:8000/docs • ReDoc: http://localhost:8000/redoc • Health: http://localhost:8000/health
+
+### 2) Frontend (Web)
+
 ```bash
 cd frontend
 npm install
-ng serve
+npm start
+```
+
+App: http://localhost:4200
+
+---
+
+## 🏗 Architecture
+
+```
+Angular (HTTP/WebSocket)
+    │
+    ▼
+FastAPI (routers ↔ services ↔ SQLAlchemy async)
+    ├── PostgreSQL (primary data + views)
+    └── Redis (cache, sessions, real-time aux)
+```
+
+Design principles:
+
+- Data integrity: strict FK, enum tables, ULID public IDs
+- Performance: computed views, strategic indexes, caching
+- Real-time: WebSockets for live updates; REST for queries
+- Security: JWT, CORS, configurable origins
+
+---
+
+## 🔌 API Overview
+
+- Base URL (dev): `http://localhost:8000`
+- Prefix: `/api` (configurable via `API_V1_PREFIX`)
+
+Examples:
+
+```http
+GET /api/teams
+GET /api/players
+GET /api/matches/{id}
+GET /api/matches/{id}/scorecard
+POST /api/deliveries
+```
+
+Web: Swagger UI at `/docs` • Health at `/health`
+
+---
+
+## ⚙️ Environment (backend/.env)
+
+Use `backend/.env.example` as a template. Key settings:
+
+```env
+# Application
+APP_NAME=PlayCricket API
+APP_VERSION=1.0.0
+ENVIRONMENT=development
+DEBUG=True
+LOG_LEVEL=INFO
+
+# Database (matches docker-compose services)
+DATABASE_URL=postgresql+asyncpg://cricket_user:cricket_pass_dev@localhost:5432/playcricket_dev
+DATABASE_POOL_SIZE=20
+DATABASE_MAX_OVERFLOW=10
+DATABASE_ECHO=False
+
+# Redis
+REDIS_URL=redis://localhost:6379/0
+REDIS_CACHE_TTL=300
+
+# Security
+SECRET_KEY=your-secret-key-change-in-production-min-32-chars
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
+
+# CORS
+CORS_ORIGINS=["http://localhost:4200","http://localhost:3000"]
+CORS_ALLOW_CREDENTIALS=True
+
+# API
+API_V1_PREFIX=/api
+DOCS_URL=/docs
+REDOC_URL=/redoc
 ```
 
 ---
 
-## 🧪 Test-Driven Development Workflow
-
-We follow strict **TDD** (Red-Green-Refactor):
+## 🧪 Testing
 
 ```bash
-# 1. RED: Write failing test
-vim tests/models/test_team.py
-pytest tests/models/test_team.py -v  # ❌ FAILS
+cd backend
+source venv/bin/activate
 
-# 2. GREEN: Implement to pass
-vim app/models/team.py
-pytest tests/models/test_team.py -v  # ✅ PASSES
+# Run tests
+pytest -v
 
-# 3. REFACTOR: Optimize
-black app tests
-pytest tests/models/test_team.py -v  # ✅ STILL PASSES
+# Coverage
+pytest --cov=app --cov-report=html
 ```
 
-**Test Coverage Target**: Backend 90%+, Frontend 85%+
+---
+
+## 🧱 Migrations
+
+```bash
+cd backend
+
+# Create a new migration from model changes
+alembic revision --autogenerate -m "Describe changes"
+
+# Apply migrations
+alembic upgrade head
+
+# Rollback one version
+alembic downgrade -1
+```
 
 ---
 
-## 📊 Performance Targets
+## 🐳 Docker • Deployment
 
-- API Response Time: **< 50ms** (p95)
-- WebSocket Latency: **< 100ms**  
-- Database Queries: **< 20ms** (p99)
-- Page Load Time: **< 2s** (FCP)
-- Concurrent Users: **10,000+**
-- Throughput: **1,000+ req/s** per instance
+- Dev services are defined in `backend/docker-compose.yml` (PostgreSQL + Redis)
+- Run `docker-compose up -d` from the `backend/` directory
+- For production, containerize backend/frontend separately and front with Nginx
+
+Example (backend image):
+
+```bash
+cd backend
+docker build -t playcricket-backend .
+docker run -p 8000:8000 playcricket-backend
+```
 
 ---
 
-## 📚 Documentation
+## 🗂 Documentation
 
-- **[DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)**: Complete 10-week development roadmap
-- **[backend/DEV_GUIDE.md](backend/DEV_GUIDE.md)**: TDD workflow and best practices
-- **[backend/README.md](backend/README.md)**: Backend quick reference
-- **[schema.txt](schema.txt)**: Original database schema notes
+- Quick start: `QUICK_START.md`
+- Backend guide: `backend/DEV_GUIDE.md`
+- Backend details: `backend/README.md`
+- Frontend details: `frontend/README.md`
 
 ---
 
 ## 🤝 Contributing
 
-1. Follow TDD: Write tests first, then implementation
-2. Maintain >90% test coverage
-3. Use pre-commit hooks (black, flake8, mypy)
-4. Write meaningful commit messages
-5. Document complex logic
+- Write tests for new features and bug fixes
+- Use Black/Flake8/mypy for Python; ESLint/Prettier for TS
+- Keep documentation up to date
 
 ---
 
-This platform is being built with production-grade quality, comprehensive testing, and performance optimization from day one.
+## 📜 License
+
+No license file is present. Consider adding MIT or Apache-2.0.
+

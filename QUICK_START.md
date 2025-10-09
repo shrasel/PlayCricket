@@ -1,5 +1,7 @@
 # 🏏 PlayCricket - Complete Quick Start Guide
 
+> For the complete documentation and architecture details, see the root README: `README.md`.
+
 ## ⚡ Start the Application (2 Terminals)
 
 ### Terminal 1 - Backend API
