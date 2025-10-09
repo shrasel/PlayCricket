@@ -1,34 +1,6 @@
-# PlayCr## 🚀 GETTING STARTED
+# PlayCricket - Complete Cricket Platform
 
-**🎯 READY TO CODE?** Start here! 👇
-
-### Quick Start (3 Commands)
-```bash
-cd backend && docker-compose up -d && source venv/bin/activate && pytest tests/models/test_team.py -v
-```
-**Should see**: 10 tests PASSED ✅
-
-### 📚 Essential Guides
-1. **[QUICK_START.md](QUICK_START.md)** - ⚡ **START HERE** - One-page guide to continue development
-2. **[SESSION_SUMMARY.md](SESSION_SUMMARY.md)** - 📋 Complete summary of what's done and what's next
-3. **[NEXT_STEPS.md](NEXT_STEPS.md)** - 🎯 Step-by-step getting started guide
-4. **[TDD_WORKFLOW.md](TDD_WORKFLOW.md)** - 🔄 Visual guide to Test-Driven Development
-5. **[PROJECT_STATUS.md](PROJECT_STATUS.md)** - 📊 Current project status and progress
-6. **[DEVELOPMENT_PLAN.md](DEVELOPMENT_PLAN.md)** - 📅 Complete 10-week development roadmap
-7. **[backend/DEV_GUIDE.md](backend/DEV_GUIDE.md)** - 🛠️ Backend development workflow
-8. **[backend/README.md](backend/README.md)** - 📚 Backend quick reference
-
-### ✅ Already Complete
-- ✅ Team model implemented and tested
-- ✅ All dependencies installed (Python 3.13 compatible)
-- ✅ Virtual environment ready
-- ✅ Documentation complete
-- ✅ Docker configuration ready
-
-### 🎯 Next: Implement Player Model
-Follow the TDD workflow in [QUICK_START.md](QUICK_START.md) to implement the Player model with Team relationship.
-
----mplete Schema & Architecture
+## � Overview
 
 ## 🏏 Overview
 
